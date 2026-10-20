@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Currículo em Ação EMFAL</title>
+<meta name="theme-color" content="#1f4e79">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<style>
+:root{--azul:#1f4e79;--azul2:#e8f0f8;--cinza:#d9d9d9;--borda:#c9ced6;--texto:#1d2329;--sub:#5b6570;--ok:#2e7d32;--meio:#b7791f;--nao:#b23b3b;--fundo:#f5f6f8}
+*{box-sizing:border-box}
+body{margin:0;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:16px;color:var(--texto);background:var(--fundo)}
+header{background:var(--azul);color:#fff;padding:14px 16px}
+header .inst{font-size:11px;opacity:.85;line-height:1.35;text-transform:uppercase;letter-spacing:.02em}
+header h1{margin:6px 0 0;font-size:22px}
+header .user{font-size:13px;opacity:.9;margin-top:4px}
+nav{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--borda);padding:0 8px;overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:12px 14px;font:inherit;font-size:15px;color:var(--sub);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--azul);border-bottom-color:var(--azul);font-weight:bold}
+main{max-width:1000px;margin:0 auto;padding:16px}
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:#fff;border:1px solid var(--borda);border-radius:8px;padding:12px;margin-bottom:14px}
+.filtros label{display:flex;flex-direction:column;font-size:13px;color:var(--sub);gap:4px;flex:1 1 160px}
+select,input[type=text],input[type=email],input[type=date],textarea{font:inherit;font-size:15px;padding:8px;border:1px solid var(--borda);border-radius:6px;background:#fff;width:100%}
+button.bt{font:inherit;font-size:15px;padding:8px 14px;border-radius:6px;border:1px solid var(--azul);background:var(--azul);color:#fff;cursor:pointer}
+button.bt.sec{background:#fff;color:var(--azul)}
+button.bt:disabled{opacity:.5;cursor:default}
+details.hab{background:#fff;border:1px solid var(--borda);border-radius:8px;margin-bottom:8px}
+details.hab>summary{padding:12px;cursor:pointer;list-style:none;display:flex;gap:10px;align-items:flex-start}
+details.hab>summary::-webkit-details-marker{display:none}
+.cod{font-weight:bold;color:var(--azul);white-space:nowrap}
+.corpo{padding:0 14px 14px;border-top:1px solid #eef0f3}
+.meta{font-size:13px;color:var(--sub);margin:10px 0}
+.crmg{background:#fff8e1;border-left:4px solid #f0b400;padding:8px 10px;font-size:14px;margin:8px 0}
+h3{font-size:16px;margin:16px 0 8px;color:var(--azul)}
+.atv,.q{border:1px solid #e3e6ea;border-radius:6px;padding:10px 12px;margin-bottom:8px}
+.atv b{display:block;margin-bottom:4px}
+.atv .info{font-size:13px;color:var(--sub);margin-bottom:6px}
+.atv pre{white-space:pre-wrap;font:inherit;margin:4px 0}
+.q .tb{background:#f7f8fa;padding:8px;border-radius:4px;margin-bottom:6px;white-space:pre-wrap}
+.q ol{margin:6px 0 6px 0;padding-left:24px;list-style:upper-alpha}
+.gab{font-size:14px;color:var(--ok);display:none;margin-top:4px}
+.q.mostra .gab{display:block}
+.linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.peq{font-size:13px;color:var(--sub)}
+a{color:var(--azul)}
+.vazio{padding:30px;text-align:center;color:var(--sub)}
+.tog{display:inline-flex;border:1px solid var(--borda);border-radius:6px;overflow:hidden}
+.tog button{border:0;background:#fff;font:inherit;font-size:14px;padding:6px 10px;cursor:pointer;border-right:1px solid var(--borda)}
+.tog button:last-child{border-right:0}
+.tog button.on[data-v="Sim"]{background:var(--ok);color:#fff}
+.tog button.on[data-v="Parcial"]{background:var(--meio);color:#fff}
+.tog button.on[data-v="Não"]{background:var(--nao);color:#fff}
+.reg{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:12px;margin-bottom:8px}
+.reg .acoes{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;align-items:center}
+.reg .acoes span.r{font-size:13px;color:var(--sub);margin-right:4px}
+.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:10px 14px;flex:1 1 140px}
+.card .n{font-size:24px;font-weight:bold;color:var(--azul)}
+.barra{height:8px;background:#e6e9ee;border-radius:4px;overflow:hidden;margin-top:6px}
+.barra i{display:block;height:100%;background:var(--ok)}
+table.pn{border-collapse:collapse;width:100%;background:#fff;font-size:14px}
+table.pn th,table.pn td{border:1px solid #000;padding:6px;text-align:center}
+table.pn th{background:var(--cinza)}
+table.pn td:first-child{text-align:left;white-space:nowrap}
+.tabwrap{overflow-x:auto}
+.aviso{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#263238;color:#fff;padding:10px 16px;border-radius:6px;font-size:14px;display:none;z-index:20;max-width:90vw}
+.carregando{color:var(--sub);padding:20px;text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:16px}
+.modal .cx{background:#fff;border-radius:10px;padding:20px;max-width:420px;width:100%}
+#prova-doc{background:#fff;border:1px solid var(--borda);padding:28px;margin-top:14px}
+.doc{font-family:Calibri,Carlito,Arial,sans-serif;font-size:12pt;text-align:justify}
+.doc .cab{text-align:center;font-weight:bold;font-size:11pt;line-height:1.3}
+.doc .tit{text-align:center;font-weight:bold;font-size:14pt;margin:12px 0}
+.doc table.id{border-collapse:collapse;width:100%;margin-bottom:12px}
+.doc table.id td{border:1px solid #000;padding:5px;font-size:11pt}
+.doc .qq{margin:0 0 14px;page-break-inside:avoid}
+.doc .qq .tb{border:1px solid #999;padding:6px 8px;margin:4px 0}
+.doc .qq p{margin:3px 0}
+.doc table.gb{border-collapse:collapse;margin-top:8px}
+.doc table.gb th,.doc table.gb td{border:1px solid #000;padding:4px 10px;text-align:center}
+.doc table.gb th{background:#d9d9d9}
+.quebra{page-break-before:always}
+@media print{
+  body{background:#fff}
+  header,nav,.filtros,.naoimprime,.aviso{display:none!important}
+  main{padding:0;max-width:none}
+  section{display:none!important}
+  section#s-prova{display:block!important}
+  #prova-doc{border:0;padding:0;margin:0}
+  @page{size:A4;margin:2cm}
+}
+@media (max-width:600px){main{padding:10px}#prova-doc{padding:14px}}
+#login{max-width:380px;margin:40px auto;background:#fff;border:1px solid var(--borda);border-radius:10px;padding:22px}
+#login h2{margin:0 0 6px;color:var(--azul);font-size:20px}
+#login label{display:block;font-size:13px;color:var(--sub);margin:12px 0 4px}
+#login input{font:inherit;font-size:16px;padding:10px;border:1px solid var(--borda);border-radius:6px;width:100%}
+#login .erro{color:var(--nao);font-size:14px;margin-top:10px;min-height:18px}
+header .topo{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;font:inherit;font-size:13px;padding:5px 10px;border-radius:6px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="inst">Prefeitura Municipal de Belo Horizonte · SMED-BH · GERED-PAMPULHA · Escola Municipal Francisca Alves</div>
+  <div class="topo"><h1>Currículo em Ação EMFAL</h1><button class="sair" id="bt-sair" style="display:none">Sair</button></div>
+  <div class="user" id="user"></div>
+</header>
+<div id="login" style="display:none">
+  <h2>Entrar</h2>
+  <div class="peq">Use o mesmo usuário e senha do Corretor EMFAL.</div>
+  <form id="f-login">
+    <label for="l-usuario">Usuário</label><input id="l-usuario" autocomplete="username" autocapitalize="none">
+    <label for="l-senha">Senha</label><input id="l-senha" type="password" autocomplete="current-password">
+    <div class="erro" id="l-erro"></div>
+    <button class="bt" type="submit" id="l-bt" style="width:100%;margin-top:6px">Entrar</button>
+  </form>
+  <p class="peq" style="margin-top:14px">Ainda não tem acesso? Fale com a coordenação para cadastrar você no Corretor EMFAL.</p>
+</div>
+<div id="app" style="display:none">
+<nav id="abas">
+  <button data-s="hab" class="on">Habilidades e sugestões</button>
+  <button data-s="prova">Montar prova</button>
+  <button data-s="reg">Meu registro</button>
+  <button data-s="painel" id="ab-painel" style="display:none">Painel da coordenação</button>
+</nav>
+<main>
+  <section id="s-hab">
+    <div class="filtros">
+      <label>Ano<select id="h-ano"></select></label>
+      <label>Componente curricular<select id="h-comp"></select></label>
+      <label style="flex:2 1 220px">Buscar<input type="text" id="h-busca" placeholder="código ou palavra da habilidade"></label>
+    </div>
+    <div id="h-lista"><div class="carregando">Carregando...</div></div>
+  </section>
+
+  <section id="s-prova" style="display:none">
+    <div class="filtros naoimprime">
+      <label>Tipo<select id="p-tipo"><option>Avaliação</option><option>Simulado</option><option>Atividade avaliativa</option><option>Prova</option></select></label>
+      <label>Turma<select id="p-turma"></select></label>
+      <label>Componente<input type="text" id="p-comp"></label>
+      <label>Valor<input type="text" id="p-valor" placeholder="ex.: 10 pontos"></label>
+    </div>
+    <div class="naoimprime">
+      <p class="peq">Na aba Habilidades e sugestões, abra uma habilidade e clique em "Incluir na prova" nas questões que quiser. Elas aparecem abaixo, na ordem em que foram escolhidas.</p>
+      <div id="p-sel"></div>
+      <div class="linha" style="margin-top:10px">
+        <button class="bt" id="p-gerar">Gerar prova</button>
+        <button class="bt sec" id="p-imprimir" disabled>Imprimir ou salvar em PDF</button>
+        <button class="bt sec" id="p-word" disabled>Baixar para Word</button>
+        <button class="bt sec" id="p-limpar">Limpar seleção</button>
+      </div>
+    </div>
+    <div id="prova-doc" style="display:none"></div>
+  </section>
+
+  <section id="s-reg" style="display:none">
+    <div class="filtros">
+      <label>Turma<select id="r-turma"></select></label>
+      <label>Componente curricular<select id="r-comp"></select></label>
+      <label>Mostrar<select id="r-filtro"><option value="">Todas</option><option value="nd">Ainda não dadas</option><option value="nc">Dadas e não consolidadas</option><option value="ok">Consolidadas</option></select></label>
+    </div>
+    <div id="r-resumo" class="resumo"></div>
+    <div id="r-lista"><div class="vazio">Escolha a turma e o componente.</div></div>
+  </section>
+
+  <section id="s-painel" style="display:none">
+    <p class="peq">Habilidades dadas sobre o total previsto para o ano. Entre parênteses, as consolidadas. Clique em Atualizar para ver as marcações mais recentes.</p>
+    <div class="linha" style="margin-bottom:10px"><button class="bt sec" id="pn-atual">Atualizar</button></div>
+    <div id="pn" class="tabwrap"></div>
+  </section>
+</main>
+</div>
+<div class="aviso" id="aviso"></div>
+
+<script>
+var COMP_SIG={"Língua Portuguesa":"LP","Matemática":"MA","Ciências":"CI","História":"HI","Geografia":"GE","Arte":"AR","Educação Física":"EF","Língua Inglesa":"LI"};
+var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},prova:[],registros:{},token:"",montado:false};
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+function aviso(t){var a=$("aviso");a.textContent=t;a.style.display="block";clearTimeout(aviso.t);aviso.t=setTimeout(function(){a.style.display="none"},3000)}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var API_URL="https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
+var SEM_TOKEN=["entrar"];
+function srv(fn){
+  var args=[].slice.call(arguments,1);
+  if(SEM_TOKEN.indexOf(fn)<0)args.unshift(EST.token);
+  return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:fn,args:args}),redirect:"follow"})
+    .then(function(r){if(!r.ok)throw new Error("O servidor não respondeu ("+r.status+"). Tente de novo.");return r.json()},function(){throw new Error("Sem conexão com o servidor. Verifique a internet e tente de novo.")})
+    .then(function(j){
+      if(j.ok)return j.res;
+      var m=String(j.erro||"Erro");
+      if(m.indexOf("SESSAO:")===0){sairLocal();throw new Error(m.slice(7).trim())}
+      throw new Error(m);
+    });
+}
+function falha(e){aviso("Erro: "+(e&&e.message?e.message:e))}
+function compsDoAno(ano){return EST.comps.filter(function(c){return c!=="Língua Inglesa"||ano>=6})}
+
+function opcoes(sel,lista,valor){sel.innerHTML=lista.map(function(o){var v=typeof o==="object"?o.v:o,t=typeof o==="object"?o.t:o;return '<option value="'+esc(v)+'"'+(String(v)===String(valor)?" selected":"")+">"+esc(t)+"</option>"}).join("")}
+
+/* ---------- início ---------- */
+function telaLogin(msg){
+  $("app").style.display="none";$("login").style.display="";$("bt-sair").style.display="none";$("user").textContent="";
+  $("l-erro").textContent=msg||"";$("l-bt").disabled=false;$("l-bt").textContent="Entrar";
+}
+function sairLocal(){EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};telaLogin("Sua sessão terminou. Entre de novo.")}
+$("f-login").onsubmit=function(ev){
+  ev.preventDefault();
+  var u=$("l-usuario").value.trim(),s=$("l-senha").value;
+  if(!u||!s){$("l-erro").textContent="Informe usuário e senha.";return}
+  $("l-bt").disabled=true;$("l-bt").textContent="Entrando...";$("l-erro").textContent="";
+  srv("entrar",u,s).then(function(r){
+    EST.token=r.token;ls("curriculo_token",r.token);$("l-senha").value="";
+    if(r.eu.trocarSenha)aviso("Lembre-se de trocar sua senha provisória no Corretor EMFAL.");
+    iniciar();
+  }).catch(function(e){$("l-erro").textContent=e.message||String(e);$("l-bt").disabled=false;$("l-bt").textContent="Entrar"});
+};
+$("bt-sair").onclick=function(){var t=EST.token;EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};if(t)srv("sair").catch(function(){});telaLogin("")};
+function iniciar(){
+  EST.token=EST.token||ls("curriculo_token")||"";
+  if(!EST.token){telaLogin("");return}
+  $("login").style.display="none";$("app").style.display="";$("user").textContent="Carregando...";
+  srv("inicio").then(function(d){
+    EST.pessoa=d.eu;EST.turmas=d.turmas;EST.comps=d.componentes;
+    montar();
+  }).catch(function(e){if(EST.token)falha(e)});
+}
+function mostrarUser(){var p=EST.pessoa;$("user").textContent=p.nome+" · "+p.perfil;$("bt-sair").style.display="";$("ab-painel").style.display=p.perfil==="Coordenação"?"":"none"}
+
+function montar(){
+  if(EST.montado){mostrarUser();carregarHab();return}
+  EST.montado=true;
+  mostrarUser();
+  var anos=[];for(var a=1;a<=9;a++)anos.push({v:a,t:a+"º ano"});
+  var anoIni=Number(ls("emfal_ano")||6);
+  opcoes($("h-ano"),anos,anoIni);
+  opcoes($("h-comp"),compsDoAno(anoIni),ls("emfal_comp")||"Língua Portuguesa");
+  var tur=[{v:"",t:"Escolha a turma"}].concat(EST.turmas.map(function(t){return {v:t.id,t:t.id}}));
+  opcoes($("r-turma"),tur,"");opcoes($("p-turma"),[{v:"",t:"Sem turma"}].concat(EST.turmas.map(function(t){return {v:t.id,t:t.id}})),"");
+  opcoes($("r-comp"),EST.comps,"");
+  $("h-ano").onchange=function(){var a=Number(this.value);ls("emfal_ano",a);var c=$("h-comp").value;opcoes($("h-comp"),compsDoAno(a),c);carregarHab()};
+  $("h-comp").onchange=function(){ls("emfal_comp",this.value);carregarHab()};
+  $("h-busca").oninput=function(){desenharHab()};
+  $("r-turma").onchange=function(){var t=turma(this.value);if(t){var c=$("r-comp").value;opcoes($("r-comp"),compsDoAno(t.ano),c)}carregarReg()};
+  $("r-comp").onchange=carregarReg;$("r-filtro").onchange=desenharReg;
+  $("p-gerar").onclick=gerarProva;$("p-imprimir").onclick=function(){window.print()};$("p-word").onclick=baixarWord;
+  $("p-limpar").onclick=function(){EST.prova=[];desenharSel();$("prova-doc").style.display="none";desenharHab()};
+  $("pn-atual").onclick=carregarPainel;
+  document.querySelectorAll("#abas button").forEach(function(b){b.onclick=function(){
+    document.querySelectorAll("#abas button").forEach(function(x){x.classList.toggle("on",x===b)});
+    ["hab","prova","reg","painel"].forEach(function(s){$("s-"+s).style.display=s===b.dataset.s?"":"none"});
+    if(b.dataset.s==="painel")carregarPainel();
+    if(b.dataset.s==="prova")desenharSel();
+  }});
+  carregarHab();
+}
+function turma(id){for(var i=0;i<EST.turmas.length;i++)if(EST.turmas[i].id===id)return EST.turmas[i];return null}
+
+/* ---------- habilidades ---------- */
+function obterHab(comp,ano){
+  var k=comp+"|"+ano;
+  if(EST.cacheHab[k])return Promise.resolve(EST.cacheHab[k]);
+  return srv("habilidades",comp,ano).then(function(l){EST.cacheHab[k]=l;return l});
+}
+function carregarHab(){
+  $("h-lista").innerHTML='<div class="carregando">Carregando habilidades...</div>';
+  obterHab($("h-comp").value,Number($("h-ano").value)).then(desenharHab).catch(falha);
+}
+function desenharHab(){
+  var lista=EST.cacheHab[$("h-comp").value+"|"+$("h-ano").value];if(!lista)return;
+  var b=$("h-busca").value.trim().toLowerCase();
+  var f=lista.filter(function(h){return !b||(h.c+" "+h.d+" "+h.o+" "+h.u).toLowerCase().indexOf(b)>=0});
+  if(!f.length){$("h-lista").innerHTML='<div class="vazio">Nenhuma habilidade encontrada.</div>';return}
+  var abertos={};document.querySelectorAll("details.hab[open]").forEach(function(d){abertos[d.dataset.c]=1});
+  $("h-lista").innerHTML='<p class="peq">'+f.length+' habilidades</p>'+f.map(function(h){
+    return '<details class="hab" data-c="'+h.c+'"'+(abertos[h.c]?" open":"")+'><summary><span class="cod">'+h.c+'</span><span>'+esc(h.d)+'</span></summary><div class="corpo">'+corpo(h)+'</div></details>';
+  }).join("");
+  ligarBotoes($("h-lista"),lista);
+}
+function corpo(h){
+  var s='<div class="meta"><b>Unidade temática / Prática:</b> '+esc(h.u)+'<br><b>Objeto de conhecimento:</b> '+esc(h.o)+(h.anos.indexOf(",")>=0?'<br><b>Anos:</b> '+esc(h.anos):"")+'</div>';
+  if(h.crmg)s+='<div class="crmg"><b>Currículo Referência de Minas Gerais:</b> '+esc(h.crmg)+'</div>';
+  s+='<h3>Atividades sugeridas</h3>';
+  s+=h.atv.map(function(a){return '<div class="atv"><b>'+esc(a.t)+'</b><div class="info">'+(a.dur?"Duração: "+esc(a.dur):"")+(a.mat?" · Materiais: "+esc(a.mat):"")+'</div><pre>'+esc(a.passos)+'</pre>'+(a.ver?'<div class="peq"><b>Como verificar:</b> '+esc(a.ver)+'</div>':"")+'</div>'}).join("")||'<p class="peq">Sem atividades cadastradas.</p>';
+  s+='<div class="peq">Mais ideias na web: <a href="https://novaescola.org.br/planos-de-aula/habilidades/'+h.c.toLowerCase()+'" target="_blank">planos de aula da Nova Escola para '+h.c+'</a> · <a href="https://www.google.com/search?q='+encodeURIComponent(h.c+" atividade")+'" target="_blank">buscar atividades</a></div>';
+  s+='<h3>Questões com gabarito</h3>';
+  s+=h.qst.map(function(q,i){var id=h.c+"#"+i;var dentro=EST.prova.some(function(p){return p.id===id});
+    return '<div class="q">'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+q.alt.map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
+  return s;
+}
+function ligarBotoes(raiz,lista){
+  raiz.querySelectorAll("[data-gab]").forEach(function(b){b.onclick=function(){var q=b.closest(".q");q.classList.toggle("mostra");b.textContent=q.classList.contains("mostra")?"Esconder gabarito":"Ver gabarito"}});
+  raiz.querySelectorAll("[data-inc]").forEach(function(b){b.onclick=function(){
+    var id=b.dataset.inc,c=id.split("#")[0],i=Number(id.split("#")[1]);
+    var pos=-1;EST.prova.forEach(function(p,k){if(p.id===id)pos=k});
+    if(pos>=0){EST.prova.splice(pos,1);b.textContent="Incluir na prova";b.classList.add("sec");aviso("Questão retirada da prova.");return}
+    var h=lista.filter(function(x){return x.c===c})[0];
+    EST.prova.push({id:id,c:c,q:h.qst[i],comp:$("h-comp").value});
+    if(!$("p-comp").value)$("p-comp").value=$("h-comp").value;
+    b.textContent="Incluída na prova";b.classList.remove("sec");aviso("Questão incluída. Total: "+EST.prova.length+".");
+  }});
+}
+
+/* ---------- prova ---------- */
+function desenharSel(){
+  if(!EST.prova.length){$("p-sel").innerHTML='<div class="vazio">Nenhuma questão escolhida ainda.</div>';return}
+  $("p-sel").innerHTML=EST.prova.map(function(p,k){return '<div class="reg"><div class="linha" style="justify-content:space-between"><span><b>'+(k+1)+'.</b> <span class="cod">'+p.c+'</span> '+esc(p.q.en)+'</span><span class="linha"><button class="bt sec" data-up="'+k+'">Subir</button><button class="bt sec" data-rm="'+k+'">Retirar</button></span></div></div>'}).join("");
+  $("p-sel").querySelectorAll("[data-rm]").forEach(function(b){b.onclick=function(){EST.prova.splice(Number(b.dataset.rm),1);desenharSel()}});
+  $("p-sel").querySelectorAll("[data-up]").forEach(function(b){b.onclick=function(){var k=Number(b.dataset.up);if(k>0){var x=EST.prova[k];EST.prova[k]=EST.prova[k-1];EST.prova[k-1]=x;desenharSel()}}});
+}
+function htmlProva(){
+  var tipo=$("p-tipo").value,tur=$("p-turma").value,comp=$("p-comp").value,val=$("p-valor").value;
+  var s='<div class="doc"><div class="cab">PREFEITURA MUNICIPAL DE BELO HORIZONTE<br>SECRETARIA MUNICIPAL DE EDUCAÇÃO (SMED-BH)<br>GERÊNCIA REGIONAL DE EDUCAÇÃO DA PAMPULHA (GERED-PAMPULHA)<br>ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div>';
+  s+='<div class="tit">'+esc(tipo.toUpperCase())+(comp?" DE "+esc(comp.toUpperCase()):"")+'</div>';
+  s+='<table class="id"><tr><td colspan="2">Estudante:</td></tr><tr><td>Turma: '+esc(tur)+'</td><td>Data: ____/____/______</td></tr><tr><td>Professor(a): '+esc(EST.pessoa.nome||"")+'</td><td>Valor: '+esc(val)+'   Nota: ________</td></tr></table>';
+  s+=EST.prova.map(function(p,k){var q=p.q;return '<div class="qq"><p><b>Questão '+(k+1)+'</b> <span style="font-size:9pt;color:#555">('+p.c+')</span></p>'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<p>'+esc(q.en)+'</p>'+q.alt.map(function(a,i){return '<p>( '+"ABCD"[i]+' ) '+esc(a)+'</p>'}).join("")+'</div>'}).join("");
+  s+='<div class="quebra"></div><div class="cab">ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div><div class="tit">GABARITO DO PROFESSOR</div>';
+  s+='<table class="gb"><tr><th>Questão</th><th>Resposta</th><th>Habilidade</th></tr>'+EST.prova.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.q.g)+'</td><td>'+p.c+'</td></tr>'}).join("")+'</table>';
+  s+=EST.prova.map(function(p,k){return '<p style="font-size:11pt"><b>'+(k+1)+'.</b> '+esc(p.q.j)+'</p>'}).join("");
+  return s+'</div>';
+}
+function gerarProva(){
+  if(!EST.prova.length){aviso("Escolha pelo menos uma questão.");return}
+  var d=$("prova-doc");d.innerHTML=htmlProva();d.style.display="";$("p-imprimir").disabled=false;$("p-word").disabled=false;d.scrollIntoView({behavior:"smooth"});
+}
+function baixarWord(){
+  var css='body{font-family:Calibri;font-size:12pt;text-align:justify}.cab{text-align:center;font-weight:bold;font-size:11pt}.tit{text-align:center;font-weight:bold;font-size:14pt;margin:12pt 0}table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:4pt}th{background:#D9D9D9}.tb{border:1px solid #999;padding:4pt}.quebra{page-break-before:always}@page{size:21cm 29.7cm;margin:2cm}';
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>'+css+'</style></head><body>'+htmlProva().replace('<div class="quebra"></div>','<br style="page-break-before:always" clear="all">')+'</body></html>';
+  var blob=new Blob(["﻿",html],{type:"application/msword"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=($("p-tipo").value+" "+($("p-comp").value||"")+" "+($("p-turma").value||"")).trim().replace(/[^\wÀ-ú ]+/g,"").replace(/\s+/g,"_")+".doc";
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ---------- registro ---------- */
+function carregarReg(){
+  var t=turma($("r-turma").value),comp=$("r-comp").value;
+  if(!t||!comp){$("r-lista").innerHTML='<div class="vazio">Escolha a turma e o componente.</div>';$("r-resumo").innerHTML="";return}
+  $("r-lista").innerHTML='<div class="carregando">Carregando...</div>';
+  Promise.all([obterHab(comp,t.ano),srv("registrosTurma",t.id,comp)]).then(function(r){EST.regLista=r[0];EST.registros=r[1];desenharReg()}).catch(falha);
+}
+function tog(cod,campo,opts,val){return '<span class="tog" data-cod="'+cod+'" data-campo="'+campo+'">'+opts.map(function(o){return '<button data-v="'+o+'"'+(val===o?' class="on"':"")+'>'+o+'</button>'}).join("")+'</span>'}
+function desenharReg(){
+  var lista=EST.regLista||[],R=EST.registros||{},f=$("r-filtro").value;
+  var tot=lista.length,dadas=0,cons=0,parc=0;
+  lista.forEach(function(h){var x=R[h.c]||{};if(x.dada==="Sim")dadas++;if(x.consol==="Sim")cons++;if(x.consol==="Parcial")parc++});
+  function card(t,n){return '<div class="card"><div class="peq">'+t+'</div><div class="n">'+n+'</div><div class="barra"><i style="width:'+(tot?Math.round(n/tot*100):0)+'%"></i></div></div>'}
+  $("r-resumo").innerHTML=card("Habilidades do ano",tot)+card("Dadas",dadas)+card("Consolidadas",cons)+card("Parcialmente consolidadas",parc);
+  var vis=lista.filter(function(h){var x=R[h.c]||{};if(f==="nd")return x.dada!=="Sim";if(f==="nc")return x.dada==="Sim"&&x.consol!=="Sim";if(f==="ok")return x.consol==="Sim";return true});
+  if(!vis.length){$("r-lista").innerHTML='<div class="vazio">Nenhuma habilidade neste filtro.</div>';return}
+  $("r-lista").innerHTML=vis.map(function(h){var x=R[h.c]||{};
+    return '<div class="reg" id="rg-'+h.c+'"><div><span class="cod">'+h.c+'</span> '+esc(h.d)+'</div><div class="acoes"><span><span class="r">Foi dada?</span>'+tog(h.c,"dada",["Sim","Não"],x.dada)+'</span><span><span class="r">Foi consolidada?</span>'+tog(h.c,"consol",["Sim","Parcial","Não"],x.consol)+'</span></div><div style="margin-top:8px"><input type="text" data-obs="'+h.c+'" placeholder="Observação (opcional)" value="'+esc(x.obs||"")+'"></div><div class="peq" data-quem="'+h.c+'" style="margin-top:4px">'+(x.data?"Última marcação: "+esc(x.nome)+" em "+esc(x.data):"")+'</div></div>'}).join("");
+  $("r-lista").querySelectorAll(".tog button").forEach(function(b){b.onclick=function(){
+    var g=b.parentNode,cod=g.dataset.cod,campo=g.dataset.campo,x=EST.registros[cod]=EST.registros[cod]||{};
+    var novo=b.classList.contains("on")?"":b.dataset.v;x[campo]=novo;
+    if(campo==="consol"&&(novo==="Sim"||novo==="Parcial"))x.dada="Sim";
+    salvar(cod);
+  }});
+  $("r-lista").querySelectorAll("[data-obs]").forEach(function(i){i.onchange=function(){var cod=i.dataset.obs;(EST.registros[cod]=EST.registros[cod]||{}).obs=i.value;salvar(cod)}});
+}
+function salvar(cod){
+  var x=EST.registros[cod],t=$("r-turma").value,comp=$("r-comp").value;
+  desenharReg();
+  var q=document.querySelector('[data-quem="'+cod+'"]');if(q)q.textContent="Salvando...";
+  srv("salvarRegistro",{turma:t,componente:comp,codigo:cod,dada:x.dada||"",consol:x.consol||"",obs:x.obs||""}).then(function(r){
+    x.nome=r.nome;x.data=r.data;var q=document.querySelector('[data-quem="'+cod+'"]');if(q)q.textContent="Salvo. Última marcação: "+r.nome+" em "+r.data;
+  }).catch(function(e){falha(e);var q=document.querySelector('[data-quem="'+cod+'"]');if(q)q.textContent="Não foi salvo. Tente de novo."});
+}
+
+/* ---------- painel ---------- */
+function carregarPainel(){
+  $("pn").innerHTML='<div class="carregando">Carregando...</div>';
+  srv("painel").then(function(d){
+    var comps=EST.comps;
+    var s='<table class="pn"><tr><th>Turma</th>'+comps.map(function(c){return "<th>"+esc(c)+"</th>"}).join("")+"</tr>";
+    s+=d.map(function(t){return "<tr><td>"+esc(t.turma)+"</td>"+t.comps.map(function(c){
+      if(!c.total)return '<td style="color:#999">não se aplica</td>';
+      var p=Math.round(c.dada/c.total*100);
+      return '<td title="'+c.parcial+' parcialmente consolidadas">'+c.dada+"/"+c.total+" ("+c.sim+")"+'<div class="barra"><i style="width:'+p+'%"></i></div></td>'}).join("")+"</tr>"}).join("");
+    $("pn").innerHTML=s+"</table>";
+  }).catch(function(e){falha(e);$("pn").innerHTML=""});
+}
+
+iniciar();
+</script>
+</body>
+</html>
