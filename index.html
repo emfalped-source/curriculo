@@ -82,6 +82,24 @@ table.pn td:first-child{text-align:left;white-space:nowrap}
 .doc table.gb th,.doc table.gb td{border:1px solid #000;padding:4px 10px;text-align:center}
 .doc table.gb th{background:#d9d9d9}
 .quebra{page-break-before:always}
+.eq{border:1px solid #c7dbef;background:#f4f8fc;border-radius:6px;padding:10px 12px;margin-bottom:8px}
+.eq.oculta{opacity:.6;border-style:dashed}
+.selo{display:inline-block;font-size:12px;background:var(--azul);color:#fff;border-radius:10px;padding:1px 8px;margin-right:6px}
+.selo.cinza{background:#8a939c}
+.autor{font-size:13px;color:var(--sub);margin:2px 0 6px}
+.eqbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+button.bt.mini{font-size:13px;padding:5px 10px}
+button.bt.usei{background:#fff;color:var(--ok);border-color:var(--ok)}
+button.bt.usei.on{background:var(--ok);color:#fff}
+.conta{font-size:12px;background:#e3f1e4;color:var(--ok);border-radius:10px;padding:1px 8px;margin-left:6px;font-weight:bold;white-space:nowrap}
+.compartilhar{margin:4px 0 6px}
+.modal .cx.grande{max-width:640px;max-height:92vh;overflow:auto}
+.modal .cx label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+.modal .cx textarea{min-height:70px;resize:vertical}
+.altgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;align-items:center}
+.altgrid .letra{font-weight:bold;display:flex;align-items:center;gap:4px;font-size:15px;color:var(--texto)}
+.modal .erro{color:var(--nao);font-size:14px;margin-top:10px;min-height:18px}
+.chk{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;flex:0 1 auto!important;font-size:14px!important;color:var(--texto)!important;padding-bottom:8px}
 @media print{
   body{background:#fff}
   header,nav,.filtros,.naoimprime,.aviso{display:none!important}
@@ -131,6 +149,7 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
       <label>Ano<select id="h-ano"></select></label>
       <label>Componente curricular<select id="h-comp"></select></label>
       <label style="flex:2 1 220px">Buscar<input type="text" id="h-busca" placeholder="código ou palavra da habilidade"></label>
+      <label class="chk"><input type="checkbox" id="h-equipe"> Só com contribuições da equipe</label>
     </div>
     <div id="h-lista"><div class="carregando">Carregando...</div></div>
   </section>
@@ -169,6 +188,9 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
     <p class="peq">Habilidades dadas sobre o total previsto para o ano. Entre parênteses, as consolidadas. Clique em Atualizar para ver as marcações mais recentes.</p>
     <div class="linha" style="margin-bottom:10px"><button class="bt sec" id="pn-atual">Atualizar</button></div>
     <div id="pn" class="tabwrap"></div>
+    <h3 style="margin-top:22px">Participação da equipe</h3>
+    <p class="peq">Atividades e questões que cada professor compartilhou, e quantas vezes colegas marcaram "Usei em sala" nelas.</p>
+    <div id="pn-eq" class="tabwrap"></div>
   </section>
 </main>
 </div>
@@ -176,7 +198,7 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
 
 <script>
 var COMP_SIG={"Língua Portuguesa":"LP","Matemática":"MA","Ciências":"CI","História":"HI","Geografia":"GE","Arte":"AR","Educação Física":"EF","Língua Inglesa":"LI"};
-var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},prova:[],registros:{},token:"",montado:false};
+var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},eq:{},prova:[],registros:{},token:"",montado:false};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 function aviso(t){var a=$("aviso");a.textContent=t;a.style.display="block";clearTimeout(aviso.t);aviso.t=setTimeout(function(){a.style.display="none"},3000)}
@@ -205,7 +227,7 @@ function telaLogin(msg){
   $("app").style.display="none";$("login").style.display="";$("bt-sair").style.display="none";$("user").textContent="";
   $("l-erro").textContent=msg||"";$("l-bt").disabled=false;$("l-bt").textContent="Entrar";
 }
-function sairLocal(){EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};telaLogin("Sua sessão terminou. Entre de novo.")}
+function sairLocal(){EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};EST.eq={};telaLogin("Sua sessão terminou. Entre de novo.")}
 $("f-login").onsubmit=function(ev){
   ev.preventDefault();
   var u=$("l-usuario").value.trim(),s=$("l-senha").value;
@@ -243,6 +265,7 @@ function montar(){
   $("h-ano").onchange=function(){var a=Number(this.value);ls("emfal_ano",a);var c=$("h-comp").value;opcoes($("h-comp"),compsDoAno(a),c);carregarHab()};
   $("h-comp").onchange=function(){ls("emfal_comp",this.value);carregarHab()};
   $("h-busca").oninput=function(){desenharHab()};
+  $("h-equipe").onchange=function(){desenharHab()};
   $("r-turma").onchange=function(){var t=turma(this.value);if(t){var c=$("r-comp").value;opcoes($("r-comp"),compsDoAno(t.ano),c)}carregarReg()};
   $("r-comp").onchange=carregarReg;$("r-filtro").onchange=desenharReg;
   $("p-gerar").onclick=gerarProva;$("p-imprimir").onclick=function(){window.print()};$("p-word").onclick=baixarWord;
@@ -266,28 +289,40 @@ function obterHab(comp,ano){
 }
 function carregarHab(){
   $("h-lista").innerHTML='<div class="carregando">Carregando habilidades...</div>';
-  obterHab($("h-comp").value,Number($("h-ano").value)).then(desenharHab).catch(falha);
+  var comp=$("h-comp").value,ano=Number($("h-ano").value);
+  obterHab(comp,ano).then(function(l){desenharHab();return carregarEquipe(comp,ano,l)}).catch(falha);
 }
+function carregarEquipe(comp,ano,lista){
+  var k=comp+"|"+ano;
+  lista=lista||EST.cacheHab[k]||[];
+  return srv("equipe",lista.map(function(h){return h.c})).then(function(d){EST.eq[k]=d;if($("h-comp").value===comp&&$("h-ano").value==String(ano))desenharHab()});
+}
+function eqAtual(){return EST.eq[$("h-comp").value+"|"+$("h-ano").value]||{atv:{},qst:{}}}
+function nEq(c){var e=eqAtual();return (e.atv[c]||[]).length+(e.qst[c]||[]).length}
 function desenharHab(){
   var lista=EST.cacheHab[$("h-comp").value+"|"+$("h-ano").value];if(!lista)return;
   var b=$("h-busca").value.trim().toLowerCase();
-  var f=lista.filter(function(h){return !b||(h.c+" "+h.d+" "+h.o+" "+h.u).toLowerCase().indexOf(b)>=0});
-  if(!f.length){$("h-lista").innerHTML='<div class="vazio">Nenhuma habilidade encontrada.</div>';return}
+  var soEq=$("h-equipe").checked;
+  var f=lista.filter(function(h){return (!b||(h.c+" "+h.d+" "+h.o+" "+h.u).toLowerCase().indexOf(b)>=0)&&(!soEq||nEq(h.c)>0)});
+  if(!f.length){$("h-lista").innerHTML='<div class="vazio">'+(soEq?'Nenhuma habilidade deste ano e componente tem contribuições da equipe ainda. Seja o primeiro a compartilhar!':'Nenhuma habilidade encontrada.')+'</div>';return}
   var abertos={};document.querySelectorAll("details.hab[open]").forEach(function(d){abertos[d.dataset.c]=1});
   $("h-lista").innerHTML='<p class="peq">'+f.length+' habilidades</p>'+f.map(function(h){
-    return '<details class="hab" data-c="'+h.c+'"'+(abertos[h.c]?" open":"")+'><summary><span class="cod">'+h.c+'</span><span>'+esc(h.d)+'</span></summary><div class="corpo">'+corpo(h)+'</div></details>';
+    return '<details class="hab" data-c="'+h.c+'"'+(abertos[h.c]?" open":"")+'><summary><span class="cod">'+h.c+'</span><span>'+esc(h.d)+(nEq(h.c)?'<span class="conta">'+nEq(h.c)+' da equipe</span>':'')+'</span></summary><div class="corpo">'+corpo(h)+'</div></details>';
   }).join("");
   ligarBotoes($("h-lista"),lista);
+  ligarEquipe($("h-lista"));
 }
 function corpo(h){
   var s='<div class="meta"><b>Unidade temática / Prática:</b> '+esc(h.u)+'<br><b>Objeto de conhecimento:</b> '+esc(h.o)+(h.anos.indexOf(",")>=0?'<br><b>Anos:</b> '+esc(h.anos):"")+'</div>';
   if(h.crmg)s+='<div class="crmg"><b>Currículo Referência de Minas Gerais:</b> '+esc(h.crmg)+'</div>';
   s+='<h3>Atividades sugeridas</h3>';
   s+=h.atv.map(function(a){return '<div class="atv"><b>'+esc(a.t)+'</b><div class="info">'+(a.dur?"Duração: "+esc(a.dur):"")+(a.mat?" · Materiais: "+esc(a.mat):"")+'</div><pre>'+esc(a.passos)+'</pre>'+(a.ver?'<div class="peq"><b>Como verificar:</b> '+esc(a.ver)+'</div>':"")+'</div>'}).join("")||'<p class="peq">Sem atividades cadastradas.</p>';
+  s+=blocoAtvEquipe(h);
   s+='<div class="peq">Mais ideias na web: <a href="https://novaescola.org.br/planos-de-aula/habilidades/'+h.c.toLowerCase()+'" target="_blank">planos de aula da Nova Escola para '+h.c+'</a> · <a href="https://www.google.com/search?q='+encodeURIComponent(h.c+" atividade")+'" target="_blank">buscar atividades</a></div>';
   s+='<h3>Questões com gabarito</h3>';
   s+=h.qst.map(function(q,i){var id=h.c+"#"+i;var dentro=EST.prova.some(function(p){return p.id===id});
     return '<div class="q">'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+q.alt.map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
+  s+=blocoQstEquipe(h);
   return s;
 }
 function ligarBotoes(raiz,lista){
@@ -301,6 +336,111 @@ function ligarBotoes(raiz,lista){
     if(!$("p-comp").value)$("p-comp").value=$("h-comp").value;
     b.textContent="Incluída na prova";b.classList.remove("sec");aviso("Questão incluída. Total: "+EST.prova.length+".");
   }});
+}
+
+
+/* ---------- contribuições da equipe ---------- */
+function seloAutor(x){
+  return '<div class="autor"><span class="selo">Equipe EMFAL</span>Compartilhada por <b>'+esc(x.autor)+'</b> em '+esc(String(x.data).slice(0,10))+(x.editada?' · editada em '+esc(String(x.editada).slice(0,10)):'')+(x.oculta?' <span class="selo cinza">Oculta</span>':'')+'</div>';
+}
+function barraEq(tipo,x){
+  var coord=EST.pessoa.perfil==="Coordenação";
+  var s='<div class="eqbar"><button class="bt mini usei'+(x.usei?' on':'')+'" data-usei="'+tipo+':'+x.id+'">'+(x.usei?'✓ Usei em sala':'Usei em sala')+'</button><span class="peq">'+(x.usos?x.usos+(x.usos>1?' professores usaram':' professor usou'):'Ninguém marcou ainda')+'</span>';
+  if(x.minha||coord)s+='<button class="bt sec mini" data-eqed="'+tipo+':'+x.id+'">Editar</button><button class="bt sec mini" data-eqdel="'+tipo+':'+x.id+'">Apagar</button>';
+  if(coord)s+='<button class="bt sec mini" data-eqoc="'+tipo+':'+x.id+'">'+(x.oculta?'Mostrar de novo':'Ocultar')+'</button>';
+  return s+'</div>';
+}
+function blocoAtvEquipe(h){
+  var l=eqAtual().atv[h.c]||[];
+  var s='<h3>Atividades da equipe EMFAL'+(l.length?' ('+l.length+')':'')+'</h3>';
+  s+=l.map(function(a){return '<div class="eq'+(a.oculta?' oculta':'')+'"><b>'+esc(a.t)+'</b>'+seloAutor(a)+'<div class="peq">'+(a.dur?"Duração: "+esc(a.dur):"")+(a.mat?(a.dur?" · ":"")+"Materiais: "+esc(a.mat):"")+'</div><pre style="white-space:pre-wrap;font:inherit;margin:4px 0">'+esc(a.passos)+'</pre>'+(a.ver?'<div class="peq"><b>Como verificar:</b> '+esc(a.ver)+'</div>':"")+(a.link?'<div class="peq"><a href="'+esc(a.link)+'" target="_blank" rel="noopener">Abrir material ↗</a></div>':"")+barraEq("atv",a)+'</div>'}).join("");
+  if(!l.length)s+='<p class="peq">Nenhum colega compartilhou atividade para esta habilidade ainda.</p>';
+  return s+'<div class="compartilhar"><button class="bt mini" data-novaatv="'+h.c+'">+ Compartilhar uma atividade</button></div>';
+}
+function blocoQstEquipe(h){
+  var l=eqAtual().qst[h.c]||[];
+  var s='<h3>Questões da equipe EMFAL'+(l.length?' ('+l.length+')':'')+'</h3>';
+  s+=l.map(function(q){var id="E:"+q.id;var dentro=EST.prova.some(function(p){return p.id===id});
+    return '<div class="eq q'+(q.oculta?' oculta':'')+'">'+seloAutor(q)+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+q.alt.map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inceq="'+q.id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div>'+barraEq("qst",q)+'</div>'}).join("");
+  if(!l.length)s+='<p class="peq">Nenhum colega compartilhou questão para esta habilidade ainda.</p>';
+  return s+'<div class="compartilhar"><button class="bt mini" data-novaqst="'+h.c+'">+ Compartilhar uma questão</button></div>';
+}
+function acharEq(tipo,id){var e=eqAtual()[tipo];for(var c in e)for(var i=0;i<e[c].length;i++)if(e[c][i].id===id)return e[c][i];return null}
+function recarregarEq(msg){var comp=$("h-comp").value,ano=Number($("h-ano").value);return carregarEquipe(comp,ano).then(function(){if(msg)aviso(msg)})}
+function ligarEquipe(raiz){
+  raiz.querySelectorAll("[data-novaatv]").forEach(function(b){b.onclick=function(){formAtividade(b.dataset.novaatv,null)}});
+  raiz.querySelectorAll("[data-novaqst]").forEach(function(b){b.onclick=function(){formQuestao(b.dataset.novaqst,null)}});
+  raiz.querySelectorAll("[data-eqed]").forEach(function(b){b.onclick=function(){var p=b.dataset.eqed.split(":"),x=acharEq(p[0],p[1]);if(!x)return;if(p[0]==="atv")formAtividade(x.c,x);else formQuestao(x.c,x)}});
+  raiz.querySelectorAll("[data-eqdel]").forEach(function(b){b.onclick=function(){var p=b.dataset.eqdel.split(":");
+    confirmar(p[0]==="atv"?"Apagar esta atividade? Ela some para todos os professores.":"Apagar esta questão? Ela some para todos os professores.","Apagar").then(function(ok){if(!ok)return;
+      b.disabled=true;srv("equipeApagar",p[0],p[1]).then(function(){EST.prova=EST.prova.filter(function(x){return x.id!=="E:"+p[1]});return recarregarEq("Apagada.")}).catch(function(e){b.disabled=false;falha(e)})})}});
+  raiz.querySelectorAll("[data-eqoc]").forEach(function(b){b.onclick=function(){var p=b.dataset.eqoc.split(":"),x=acharEq(p[0],p[1]);
+    b.disabled=true;srv("equipeOcultar",p[0],p[1],!x.oculta).then(function(){return recarregarEq(x.oculta?"Visível de novo para todos.":"Ocultada. Só você e o autor veem.")}).catch(function(e){b.disabled=false;falha(e)})}});
+  raiz.querySelectorAll("[data-usei]").forEach(function(b){b.onclick=function(){var p=b.dataset.usei.split(":"),x=acharEq(p[0],p[1]);
+    b.disabled=true;srv("equipeUsei",p[0],p[1]).then(function(r){x.usei=r.usei;x.usos=r.usos;desenharHab();aviso(r.usei?"Obrigado! Isso ajuda os colegas a escolher.":"Marcação retirada.")}).catch(function(e){b.disabled=false;falha(e)})}});
+  raiz.querySelectorAll("[data-inceq]").forEach(function(b){b.onclick=function(){
+    var q=acharEq("qst",b.dataset.inceq),id="E:"+q.id;
+    var pos=-1;EST.prova.forEach(function(p,k){if(p.id===id)pos=k});
+    if(pos>=0){EST.prova.splice(pos,1);b.textContent="Incluir na prova";b.classList.add("sec");aviso("Questão retirada da prova.");return}
+    EST.prova.push({id:id,c:q.c,q:{tb:q.tb,en:q.en,alt:q.alt,g:q.g,j:q.j},comp:$("h-comp").value});
+    if(!$("p-comp").value)$("p-comp").value=$("h-comp").value;
+    b.textContent="Incluída na prova";b.classList.remove("sec");aviso("Questão incluída. Total: "+EST.prova.length+".");
+  }});
+}
+function confirmar(msg,sim){
+  return new Promise(function(ok){
+    var m=document.createElement("div");m.className="modal";
+    m.innerHTML='<div class="cx"><p style="margin-top:0">'+esc(msg)+'</p><div class="linha" style="justify-content:flex-end"><button class="bt sec" data-n>Cancelar</button><button class="bt" data-s>'+esc(sim||"Confirmar")+'</button></div></div>';
+    document.body.appendChild(m);
+    m.querySelector("[data-n]").onclick=function(){m.remove();ok(false)};
+    m.querySelector("[data-s]").onclick=function(){m.remove();ok(true)};
+  });
+}
+function habInfo(c){var l=EST.cacheHab[$("h-comp").value+"|"+$("h-ano").value]||[];for(var i=0;i<l.length;i++)if(l[i].c===c)return l[i];return {c:c,d:""}}
+function abrirForm(titulo,c,html,enviar){
+  var h=habInfo(c);
+  var m=document.createElement("div");m.className="modal";
+  m.innerHTML='<form class="cx grande"><h2 style="margin:0 0 4px;color:var(--azul);font-size:19px">'+esc(titulo)+'</h2><div class="peq"><span class="cod">'+esc(c)+'</span> '+esc(h.d)+'</div>'+html+
+    '<p class="peq" style="margin-top:12px">Sua contribuição aparece na hora para todos os professores da EMFAL, com o seu nome. Você pode editar ou apagar depois.</p><div class="erro"></div><div class="linha" style="justify-content:flex-end"><button type="button" class="bt sec" data-n>Cancelar</button><button type="submit" class="bt" data-s>Publicar</button></div></form>';
+  document.body.appendChild(m);
+  var f=m.querySelector("form");
+  m.querySelector("[data-n]").onclick=function(){m.remove()};
+  f.onsubmit=function(ev){ev.preventDefault();var bt=m.querySelector("[data-s]");bt.disabled=true;bt.textContent="Publicando...";m.querySelector(".erro").textContent="";
+    enviar(f).then(function(){m.remove()}).catch(function(e){bt.disabled=false;bt.textContent="Publicar";m.querySelector(".erro").textContent=e.message||String(e)})};
+  var pri=f.querySelector("input,textarea");if(pri)pri.focus();
+  return f;
+}
+function campo(id,rot,val,tipo,extra){
+  if(tipo==="area")return '<label for="'+id+'">'+rot+'</label><textarea id="'+id+'" '+(extra||"")+'>'+esc(val||"")+'</textarea>';
+  return '<label for="'+id+'">'+rot+'</label><input type="text" id="'+id+'" value="'+esc(val||"")+'" '+(extra||"")+'>';
+}
+function formAtividade(c,x){
+  x=x||{};
+  var html=campo("fa-t","Título *",x.t,"","maxlength=150")+
+    '<div class="linha" style="align-items:flex-start"><div style="flex:1 1 140px">'+campo("fa-dur","Duração",x.dur,"","maxlength=60 placeholder='ex.: 2 aulas'")+'</div><div style="flex:3 1 260px">'+campo("fa-mat","Materiais",x.mat,"","maxlength=500")+'</div></div>'+
+    campo("fa-passos","Passo a passo *",x.passos,"area","style='min-height:150px' maxlength=6000 placeholder='1. ...&#10;2. ...'")+
+    campo("fa-ver","Como verificar a aprendizagem",x.ver,"area","maxlength=1500")+
+    campo("fa-link","Link de material (opcional)",x.link,"","maxlength=500 placeholder='https://...' inputmode=url");
+  abrirForm(x.id?"Editar atividade":"Compartilhar uma atividade",c,html,function(f){
+    return srv("equipeSalvarAtividade",{id:x.id||"",c:c,t:f.querySelector("#fa-t").value,dur:f.querySelector("#fa-dur").value,mat:f.querySelector("#fa-mat").value,
+      passos:f.querySelector("#fa-passos").value,ver:f.querySelector("#fa-ver").value,link:f.querySelector("#fa-link").value.trim()})
+      .then(function(){return recarregarEq(x.id?"Atividade atualizada.":"Atividade publicada. Obrigado por compartilhar!")});
+  });
+}
+function formQuestao(c,x){
+  x=x||{};var alt=x.alt||["","","",""];
+  var html=campo("fq-tb","Texto base (opcional)",x.tb,"area","maxlength=4000")+
+    campo("fq-en","Enunciado *",x.en,"area","maxlength=1500")+
+    '<label>Alternativas * <span style="font-weight:normal">(marque a correta)</span></label><div class="altgrid">'+
+    ["A","B","C","D"].map(function(L,i){return '<span class="letra"><input type="radio" name="fq-g" value="'+L+'"'+(x.g===L?" checked":"")+' aria-label="'+L+' é a correta">'+L+'</span><input type="text" id="fq-'+L+'" value="'+esc(alt[i])+'" maxlength=500 aria-label="Alternativa '+L+'">'}).join("")+'</div>'+
+    campo("fq-j","Justificativa do gabarito",x.j,"area","maxlength=1500 placeholder='Por que esta é a resposta certa'");
+  abrirForm(x.id?"Editar questão":"Compartilhar uma questão",c,html,function(f){
+    var g=f.querySelector('input[name="fq-g"]:checked');
+    if(!g)return Promise.reject(new Error("Marque qual alternativa é a correta."));
+    return srv("equipeSalvarQuestao",{id:x.id||"",c:c,tb:f.querySelector("#fq-tb").value,en:f.querySelector("#fq-en").value,
+      alt:["A","B","C","D"].map(function(L){return f.querySelector("#fq-"+L).value}),g:g.value,j:f.querySelector("#fq-j").value})
+      .then(function(){return recarregarEq(x.id?"Questão atualizada.":"Questão publicada. Obrigado por compartilhar!")});
+  });
 }
 
 /* ---------- prova ---------- */
@@ -379,7 +519,21 @@ function carregarPainel(){
       var p=Math.round(c.dada/c.total*100);
       return '<td title="'+c.parcial+' parcialmente consolidadas">'+c.dada+"/"+c.total+" ("+c.sim+")"+'<div class="barra"><i style="width:'+p+'%"></i></div></td>'}).join("")+"</tr>"}).join("");
     $("pn").innerHTML=s+"</table>";
+    carregarParticipacao();
   }).catch(function(e){falha(e);$("pn").innerHTML=""});
+}
+
+function carregarParticipacao(){
+  $("pn-eq").innerHTML='<div class="carregando">Carregando...</div>';
+  srv("equipeResumo").then(function(d){
+    if(!d.professores.length){$("pn-eq").innerHTML='<div class="vazio">Nenhum professor compartilhou atividades ou questões ainda.</div>';return}
+    var t={atv:0,qst:0,usos:0};d.professores.forEach(function(p){t.atv+=p.atv;t.qst+=p.qst;t.usos+=p.usos});
+    var s='<table class="pn"><tr><th>Professor(a)</th><th>Atividades</th><th>Questões</th><th>Vezes que colegas usaram</th><th>Última contribuição</th></tr>';
+    s+=d.professores.map(function(p){return '<tr><td>'+esc(p.nome)+'</td><td>'+p.atv+'</td><td>'+p.qst+'</td><td>'+p.usos+'</td><td>'+esc(String(p.ultima).slice(0,10))+'</td></tr>'}).join("");
+    s+='<tr><th style="text-align:left">Total</th><th>'+t.atv+'</th><th>'+t.qst+'</th><th>'+t.usos+'</th><th></th></tr></table>';
+    if(d.recentes.length)s+='<h3>Contribuições mais recentes</h3>'+d.recentes.map(function(r){return '<div class="reg"><span class="selo'+(r.oculta?' cinza':'')+'">'+(r.tipo==="atv"?"Atividade":"Questão")+(r.oculta?" · oculta":"")+'</span><span class="cod">'+esc(r.c)+'</span> '+esc(r.titulo)+'<div class="peq">'+esc(r.autor)+' · '+esc(r.data)+'</div></div>'}).join("");
+    $("pn-eq").innerHTML=s;
+  }).catch(function(e){$("pn-eq").innerHTML='<div class="vazio">'+esc(e.message||e)+'</div>'});
 }
 
 iniciar();
