@@ -40,6 +40,7 @@ h3{font-size:16px;margin:16px 0 8px;color:var(--azul)}
 .atv pre{white-space:pre-wrap;font:inherit;margin:4px 0}
 .q .tb{background:#f7f8fa;padding:8px;border-radius:4px;margin-bottom:6px;white-space:pre-wrap}
 .q ol{margin:6px 0 6px 0;padding-left:24px;list-style:upper-alpha}
+.qimgs{margin:6px 0}.qimg{display:block;max-width:100%;height:auto;margin:6px 0;border:1px solid #e3e6ea;border-radius:4px;min-height:24px;background:#f7f8fa}.qfonte{font-size:12px;color:#666;margin-top:4px}
 .gab{font-size:14px;color:var(--ok);display:none;margin-top:4px}
 .q.mostra .gab{display:block}
 .linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -78,6 +79,7 @@ table.pn td:first-child{text-align:left;white-space:nowrap}
 .doc .qq{margin:0 0 14px;page-break-inside:avoid}
 .doc .qq .tb{border:1px solid #999;padding:6px 8px;margin:4px 0}
 .doc .qq p{margin:3px 0}
+.doc .qq img{display:block;max-width:15cm;max-height:12cm;margin:6px 0}
 .doc table.gb{border-collapse:collapse;margin-top:8px}
 .doc table.gb th,.doc table.gb td{border:1px solid #000;padding:4px 10px;text-align:center}
 .doc table.gb th{background:#d9d9d9}
@@ -201,6 +203,12 @@ var COMP_SIG={"Língua Portuguesa":"LP","Matemática":"MA","Ciências":"CI","His
 var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},eq:{},prova:[],registros:{},token:"",montado:false};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+var IMGS={},IMGOK={};
+function imgSrc(id){if(!IMGS[id])IMGS[id]=srv("imagemPET",id).then(function(r){var u="data:"+r.tipo+";base64,"+r.b64;IMGOK[id]=u;return u},function(e){delete IMGS[id];throw e});return IMGS[id]}
+function idsImg(q){return String(q&&q.img||"").split(",").map(function(x){return x.trim()}).filter(Boolean)}
+function blocoImg(q){var ids=idsImg(q);if(!ids.length)return "";return '<div class="qimgs">'+ids.map(function(id){return '<img class="qimg" data-img="'+esc(id)+'" alt="Imagem da questão (carregando)">'}).join("")+'</div>'}
+function carregarImgs(raiz){raiz.querySelectorAll("img[data-img]:not([src])").forEach(function(im){imgSrc(im.dataset.img).then(function(u){im.src=u;im.alt="Imagem da questão"}).catch(function(){im.alt="Imagem indisponível. Tente abrir de novo."})})}
+function alts(q){var a=(q.alt||[]).map(function(x){return String(x==null?"":x)});while(a.length&&!a[a.length-1].trim())a.pop();return a}
 function aviso(t){var a=$("aviso");a.textContent=t;a.style.display="block";clearTimeout(aviso.t);aviso.t=setTimeout(function(){a.style.display="none"},3000)}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var API_URL="https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
@@ -311,6 +319,7 @@ function desenharHab(){
   }).join("");
   ligarBotoes($("h-lista"),lista);
   ligarEquipe($("h-lista"));
+  $("h-lista").querySelectorAll("details.hab").forEach(function(d){if(d.open)carregarImgs(d);d.addEventListener("toggle",function(){if(d.open)carregarImgs(d)})});
 }
 function corpo(h){
   var s='<div class="meta"><b>Unidade temática / Prática:</b> '+esc(h.u)+'<br><b>Objeto de conhecimento:</b> '+esc(h.o)+(h.anos.indexOf(",")>=0?'<br><b>Anos:</b> '+esc(h.anos):"")+'</div>';
@@ -321,7 +330,7 @@ function corpo(h){
   s+='<div class="peq">Mais ideias na web: <a href="https://novaescola.org.br/planos-de-aula/habilidades/'+h.c.toLowerCase()+'" target="_blank">planos de aula da Nova Escola para '+h.c+'</a> · <a href="https://www.google.com/search?q='+encodeURIComponent(h.c+" atividade")+'" target="_blank">buscar atividades</a></div>';
   s+='<h3>Questões com gabarito</h3>';
   s+=h.qst.map(function(q,i){var id=h.c+"#"+i;var dentro=EST.prova.some(function(p){return p.id===id});
-    return '<div class="q">'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+q.alt.map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
+    return '<div class="q">'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+blocoImg(q)+'<div>'+esc(q.en)+'</div><ol>'+alts(q).map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol>'+(q.fonte?'<div class="qfonte">Fonte: '+esc(q.fonte)+'</div>':"")+'<div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
   s+=blocoQstEquipe(h);
   return s;
 }
@@ -361,7 +370,7 @@ function blocoQstEquipe(h){
   var l=eqAtual().qst[h.c]||[];
   var s='<h3>Questões da equipe EMFAL'+(l.length?' ('+l.length+')':'')+'</h3>';
   s+=l.map(function(q){var id="E:"+q.id;var dentro=EST.prova.some(function(p){return p.id===id});
-    return '<div class="eq q'+(q.oculta?' oculta':'')+'">'+seloAutor(q)+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+q.alt.map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inceq="'+q.id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div>'+barraEq("qst",q)+'</div>'}).join("");
+    return '<div class="eq q'+(q.oculta?' oculta':'')+'">'+seloAutor(q)+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<div>'+esc(q.en)+'</div><ol>'+alts(q).map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol><div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inceq="'+q.id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div>'+barraEq("qst",q)+'</div>'}).join("");
   if(!l.length)s+='<p class="peq">Nenhum colega compartilhou questão para esta habilidade ainda.</p>';
   return s+'<div class="compartilhar"><button class="bt mini" data-novaqst="'+h.c+'">+ Compartilhar uma questão</button></div>';
 }
@@ -455,7 +464,7 @@ function htmlProva(){
   var s='<div class="doc"><div class="cab">PREFEITURA MUNICIPAL DE BELO HORIZONTE<br>SECRETARIA MUNICIPAL DE EDUCAÇÃO (SMED-BH)<br>GERÊNCIA REGIONAL DE EDUCAÇÃO DA PAMPULHA (GERED-PAMPULHA)<br>ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div>';
   s+='<div class="tit">'+esc(tipo.toUpperCase())+(comp?" DE "+esc(comp.toUpperCase()):"")+'</div>';
   s+='<table class="id"><tr><td colspan="2">Estudante:</td></tr><tr><td>Turma: '+esc(tur)+'</td><td>Data: ____/____/______</td></tr><tr><td>Professor(a): '+esc(EST.pessoa.nome||"")+'</td><td>Valor: '+esc(val)+'   Nota: ________</td></tr></table>';
-  s+=EST.prova.map(function(p,k){var q=p.q;return '<div class="qq"><p><b>Questão '+(k+1)+'</b> <span style="font-size:9pt;color:#555">('+p.c+')</span></p>'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+'<p>'+esc(q.en)+'</p>'+q.alt.map(function(a,i){return '<p>( '+"ABCD"[i]+' ) '+esc(a)+'</p>'}).join("")+'</div>'}).join("");
+  s+=EST.prova.map(function(p,k){var q=p.q;return '<div class="qq"><p><b>Questão '+(k+1)+'</b> <span style="font-size:9pt;color:#555">('+p.c+')</span></p>'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+idsImg(q).map(function(id){return IMGOK[id]?'<img src="'+IMGOK[id]+'" alt="Imagem da questão">':'<p><i>[imagem indisponível]</i></p>'}).join("")+'<p>'+esc(q.en)+'</p>'+alts(q).map(function(a,i){return '<p>( '+"ABCDE"[i]+' ) '+esc(a)+'</p>'}).join("")+'</div>'}).join("");
   s+='<div class="quebra"></div><div class="cab">ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div><div class="tit">GABARITO DO PROFESSOR</div>';
   s+='<table class="gb"><tr><th>Questão</th><th>Resposta</th><th>Habilidade</th></tr>'+EST.prova.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.q.g)+'</td><td>'+p.c+'</td></tr>'}).join("")+'</table>';
   s+=EST.prova.map(function(p,k){return '<p style="font-size:11pt"><b>'+(k+1)+'.</b> '+esc(p.q.j)+'</p>'}).join("");
@@ -463,12 +472,18 @@ function htmlProva(){
 }
 function gerarProva(){
   if(!EST.prova.length){aviso("Escolha pelo menos uma questão.");return}
+  var ids=[];EST.prova.forEach(function(p){idsImg(p.q).forEach(function(id){if(!IMGOK[id])ids.push(id)})});
+  if(ids.length){var bt=$("p-gerar");bt.disabled=true;aviso("Carregando as imagens das questões...");
+    Promise.all(ids.map(function(id){return imgSrc(id).catch(function(){return null})})).then(function(){bt.disabled=false;gerarProva()});return}
   var d=$("prova-doc");d.innerHTML=htmlProva();d.style.display="";$("p-imprimir").disabled=false;$("p-word").disabled=false;d.scrollIntoView({behavior:"smooth"});
 }
 function baixarWord(){
   var css='body{font-family:Calibri;font-size:12pt;text-align:justify}.cab{text-align:center;font-weight:bold;font-size:11pt}.tit{text-align:center;font-weight:bold;font-size:14pt;margin:12pt 0}table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:4pt}th{background:#D9D9D9}.tb{border:1px solid #999;padding:4pt}.quebra{page-break-before:always}@page{size:21cm 29.7cm;margin:2cm}';
   var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>'+css+'</style></head><body>'+htmlProva().replace('<div class="quebra"></div>','<br style="page-break-before:always" clear="all">')+'</body></html>';
-  var blob=new Blob(["﻿",html],{type:"application/msword"});
+  var partes=[],n=0,B="----=_EMFAL_PROVA";
+  html=html.replace(/src="data:([^;"]+);base64,([^"]+)"/g,function(m,tipo,b64){n++;var nome="imagem"+n+"."+(tipo.split("/")[1]||"png").replace("jpeg","jpg");partes.push("--"+B+"\r\nContent-Location: file:///C:/prova/"+nome+"\r\nContent-Transfer-Encoding: base64\r\nContent-Type: "+tipo+"\r\n\r\n"+b64.replace(/(.{76})/g,"$1\r\n")+"\r\n");return 'src="'+nome+'"'});
+  var corpoMht="MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary=\""+B+"\"\r\n\r\n--"+B+"\r\nContent-Location: file:///C:/prova/prova.htm\r\nContent-Transfer-Encoding: 8bit\r\nContent-Type: text/html; charset=\"utf-8\"\r\n\r\n"+html+"\r\n"+partes.join("")+"--"+B+"--\r\n";
+  var blob=n?new Blob([corpoMht],{type:"application/msword"}):new Blob(["﻿",html],{type:"application/msword"});
   var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=($("p-tipo").value+" "+($("p-comp").value||"")+" "+($("p-turma").value||"")).trim().replace(/[^\wÀ-ú ]+/g,"").replace(/\s+/g,"_")+".doc";
   document.body.appendChild(a);a.click();a.remove();
 }
