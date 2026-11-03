@@ -124,7 +124,7 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
 <body>
 <header>
   <div class="inst">Prefeitura Municipal de Belo Horizonte · SMED-BH · GERED-PAMPULHA · Escola Municipal Francisca Alves</div>
-  <div class="topo"><h1>Currículo em Ação EMFAL</h1><button class="sair" id="bt-sair" style="display:none">Sair</button></div>
+  <div class="topo"><h1>Currículo em Ação EMFAL</h1><span><button class="sair" id="bt-conta" style="display:none;margin-right:6px">Conta</button><button class="sair" id="bt-sair" style="display:none">Sair</button></span></div>
   <div class="user" id="user"></div>
 </header>
 <div id="login" style="display:none">
@@ -198,6 +198,7 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
 </div>
 <div class="aviso" id="aviso"></div>
 
+<script src="https://emfalped-source.github.io/corretor/conta-emfal.js"></script>
 <script>
 var COMP_SIG={"Língua Portuguesa":"LP","Matemática":"MA","Ciências":"CI","História":"HI","Geografia":"GE","Arte":"AR","Educação Física":"EF","Língua Inglesa":"LI"};
 var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},eq:{},prova:[],registros:{},token:"",montado:false};
@@ -232,7 +233,7 @@ function opcoes(sel,lista,valor){sel.innerHTML=lista.map(function(o){var v=typeo
 
 /* ---------- início ---------- */
 function telaLogin(msg){
-  $("app").style.display="none";$("login").style.display="";$("bt-sair").style.display="none";$("user").textContent="";
+  $("app").style.display="none";$("login").style.display="";$("bt-sair").style.display="none";$("bt-conta").style.display="none";$("user").textContent="";
   $("l-erro").textContent=msg||"";$("l-bt").disabled=false;$("l-bt").textContent="Entrar";
 }
 function sairLocal(){EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};EST.eq={};telaLogin("Sua sessão terminou. Entre de novo.")}
@@ -242,11 +243,22 @@ $("f-login").onsubmit=function(ev){
   if(!u||!s){$("l-erro").textContent="Informe usuário e senha.";return}
   $("l-bt").disabled=true;$("l-bt").textContent="Entrando...";$("l-erro").textContent="";
   srv("entrar",u,s).then(function(r){
-    EST.token=r.token;ls("curriculo_token",r.token);$("l-senha").value="";
-    if(r.eu.trocarSenha)aviso("Lembre-se de trocar sua senha provisória no Corretor EMFAL.");
+    $("l-senha").value="";
+    if(r.eu.trocarSenha&&window.ContaEMFAL){
+      // senha provisória: cria a senha aqui mesmo e entra de novo com a nova
+      $("l-bt").disabled=false;$("l-bt").textContent="Entrar";
+      ContaEMFAL.abrir({usuario:u,senha:s,obrigatoria:true,aoTerminar:function(res){
+        if(!res.trocouSenha)return;
+        srv("entrar",u,res.senha).then(function(r2){EST.token=r2.token;ls("curriculo_token",r2.token);iniciar()})
+          .catch(function(e){$("l-erro").textContent="Senha criada. Entre com a nova senha."});
+      }});
+      return;
+    }
+    EST.token=r.token;ls("curriculo_token",r.token);
     iniciar();
   }).catch(function(e){$("l-erro").textContent=e.message||String(e);$("l-bt").disabled=false;$("l-bt").textContent="Entrar"});
 };
+$("bt-conta").onclick=function(){if(window.ContaEMFAL)ContaEMFAL.abrir({usuario:(EST.pessoa&&EST.pessoa.usuario)||""});else aviso("Não foi possível abrir a conta. Verifique a internet.")};
 $("bt-sair").onclick=function(){var t=EST.token;EST.token="";ls("curriculo_token","");EST.montado=false;EST.cacheHab={};if(t)srv("sair").catch(function(){});telaLogin("")};
 function iniciar(){
   EST.token=EST.token||ls("curriculo_token")||"";
@@ -257,7 +269,7 @@ function iniciar(){
     montar();
   }).catch(function(e){if(EST.token)falha(e)});
 }
-function mostrarUser(){var p=EST.pessoa;$("user").textContent=p.nome+" · "+p.perfil;$("bt-sair").style.display="";$("ab-painel").style.display=p.perfil==="Coordenação"?"":"none"}
+function mostrarUser(){var p=EST.pessoa;$("user").textContent=p.nome+" · "+p.perfil;$("bt-sair").style.display="";$("bt-conta").style.display="";$("ab-painel").style.display=p.perfil==="Coordenação"?"":"none"}
 
 function montar(){
   if(EST.montado){mostrarUser();carregarHab();return}
