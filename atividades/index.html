@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atividades com IA EMFAL</title>
+<meta name="theme-color" content="#1f4e79">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../icone-192.png">
+<link rel="apple-touch-icon" href="../icone-192.png">
+<style>
+:root{--azul:#1f4e79;--azul2:#e8f0f8;--borda:#c9ced6;--texto:#1d2329;--sub:#5b6570;--ok:#2e7d32;--meio:#b7791f;--nao:#b23b3b;--fundo:#f5f6f8;--branco:#fff}
+@media (prefers-color-scheme:dark){:root{--azul:#7fb0e0;--azul2:#1d2a38;--borda:#34404d;--texto:#e3e8ee;--sub:#9aa7b4;--ok:#7cc883;--meio:#e0b260;--nao:#ef8a8a;--fundo:#12171d;--branco:#1a2129;color-scheme:dark}}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:16px;color:var(--texto);background:var(--fundo)}
+header{background:#1f4e79;color:#fff;padding:14px 16px}
+header .inst{font-size:11px;opacity:.85;line-height:1.35;text-transform:uppercase;letter-spacing:.02em}
+header h1{margin:6px 0 0;font-size:22px}
+header .user{font-size:13px;opacity:.9;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+header .user button{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:5px;padding:3px 9px;font:inherit;font-size:13px;cursor:pointer}
+main{max-width:860px;margin:0 auto;padding:16px;display:grid;gap:14px}
+.caixa{background:var(--branco);border:1px solid var(--borda);border-radius:8px;padding:14px;display:grid;gap:12px}
+.caixa h2{margin:0;font-size:17px;color:var(--azul)}
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--sub);gap:4px;min-width:0}
+select,input,textarea{font:inherit;font-size:15px;padding:8px;border:1px solid var(--borda);border-radius:6px;background:var(--branco);color:var(--texto);width:100%}
+textarea{min-height:80px;resize:vertical}
+button.bt{font:inherit;font-size:15px;padding:9px 14px;border-radius:6px;border:1px solid var(--azul);background:var(--azul);color:var(--branco);cursor:pointer}
+button.bt.sec{background:var(--branco);color:var(--azul)}
+button.bt:disabled{opacity:.5;cursor:default}
+button:focus-visible,select:focus,input:focus,textarea:focus{outline:2px solid var(--azul);outline-offset:1px}
+.linha{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.peq{font-size:13px;color:var(--sub);margin:0}
+.erro{color:var(--nao);font-size:14px;margin:0}
+.selo{font-size:12px;font-weight:bold;padding:4px 9px;border-radius:99px;background:var(--azul2);color:var(--azul)}
+.selo.meio{color:var(--meio)} .selo.nao{color:var(--nao)} .selo.ok{color:var(--ok)}
+.barra{height:7px;border-radius:9px;background:var(--azul2);overflow:hidden}
+.barra span{display:block;height:100%;width:0;background:var(--azul);transition:width .3s}
+.hab{background:var(--azul2);border-radius:6px;padding:10px 12px;font-size:15px;line-height:1.45}
+.hab b.cod{font-family:Consolas,monospace;margin-right:6px}
+.hab .meta{font-size:13px;color:var(--sub);margin-top:6px}
+.folha{background:var(--branco);border:1px solid var(--borda);border-radius:8px;padding:20px 18px;min-height:150px}
+#saida{white-space:pre-wrap;margin:0;font:inherit;font-size:16px;line-height:1.55;overflow-wrap:anywhere}
+#saida:empty::before{content:"A atividade gerada aparece aqui.";color:var(--sub)}
+.cursor::after{content:"|";color:var(--azul);animation:pisca 1s steps(2) infinite}
+@keyframes pisca{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cursor::after{animation:none}.barra span{transition:none}}
+#login{max-width:380px;margin:30px auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="inst">Prefeitura Municipal de Belo Horizonte · SMED-BH · GERED-Pampulha<br>Escola Municipal Francisca Alves (EMFAL)</div>
+  <h1>Atividades com IA</h1>
+  <div class="user"><span id="user"></span><button id="bt-sair" hidden>Sair</button></div>
+</header>
+
+<main>
+  <!-- Login: mesmo usuário e senha do Corretor e do Currículo -->
+  <form id="login" class="caixa" hidden>
+    <h2>Entrar</h2>
+    <p class="peq">Use o mesmo usuário e senha do Corretor EMFAL e do Currículo em Ação. O login só é necessário para baixar as habilidades; depois o app funciona sem internet.</p>
+    <label for="l-usuario">Usuário<input id="l-usuario" autocomplete="username"></label>
+    <label for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password"></label>
+    <p id="l-erro" class="erro"></p>
+    <div class="linha"><button id="l-bt" class="bt">Entrar</button><button type="button" id="l-offline" class="bt sec" hidden>Usar habilidades guardadas</button></div>
+  </form>
+
+  <div id="app" hidden style="display:grid;gap:14px">
+    <section class="caixa" aria-labelledby="t1">
+      <h2 id="t1">1. Inteligência artificial</h2>
+      <label for="modelo">Modelo
+        <select id="modelo">
+          <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Padrão: Qwen 2.5 1.5B (cerca de 1 GB, notebook comum)</option>
+          <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Melhor qualidade: Qwen 2.5 3B (cerca de 2 GB, notebook bom)</option>
+          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Leve: Qwen 2.5 0.5B (cerca de 400 MB, aparelhos fracos)</option>
+        </select>
+      </label>
+      <div class="linha"><span id="pill" class="selo">Não carregado</span><span id="statusTxt" class="peq"></span></div>
+      <div class="barra" aria-hidden="true"><span id="barra"></span></div>
+      <div class="linha"><button id="btnCarregar" class="bt">Carregar modelo</button></div>
+      <p class="peq">Na primeira vez o modelo é baixado e guardado no navegador. Nas próximas vezes carrega do próprio aparelho, mesmo sem internet. Use o Google Chrome atualizado.</p>
+    </section>
+
+    <section class="caixa" aria-labelledby="t2">
+      <h2 id="t2">2. Habilidade</h2>
+      <div class="grade">
+        <label for="h-ano">Ano<select id="h-ano"></select></label>
+        <label for="h-comp">Componente<select id="h-comp"></select></label>
+        <label for="h-busca">Buscar<input id="h-busca" placeholder="código ou palavra"></label>
+      </div>
+      <label for="h-sel">Habilidade<select id="h-sel"></select></label>
+      <div id="h-colar" hidden style="display:grid;gap:10px">
+        <label for="h-cod">Código<input id="h-cod" placeholder="EF06LP05"></label>
+        <label for="h-txt">Texto da habilidade<textarea id="h-txt" placeholder="Cole aqui o texto da habilidade"></textarea></label>
+      </div>
+      <div id="h-info" class="hab"></div>
+      <div class="linha"><span id="h-estado" class="peq"></span><button id="bt-todas" class="bt sec" hidden>Guardar todas as habilidades para usar sem internet</button></div>
+    </section>
+
+    <section class="caixa" aria-labelledby="t3">
+      <h2 id="t3">3. Atividade</h2>
+      <div class="grade">
+        <label for="tipo">Tipo
+          <select id="tipo">
+            <option value="mc">Múltipla escolha (A a D)</option>
+            <option value="interp">Texto curto com interpretação</option>
+            <option value="prob">Situações-problema</option>
+            <option value="aberta">Questões abertas</option>
+            <option value="sequencia">Sequência didática de uma aula</option>
+          </select>
+        </label>
+        <label for="qtd">Questões<select id="qtd"><option>3</option><option selected>5</option><option>8</option><option>10</option></select></label>
+        <label for="nivel">Nível<select id="nivel"><option value="básico">Básico (recomposição)</option><option value="adequado" selected>Adequado ao ano</option><option value="desafiador">Desafiador</option></select></label>
+      </div>
+      <label for="extra">Orientação extra (opcional)<input id="extra" placeholder="por exemplo: tema futebol, linguagem simples, estudante com TEA"></label>
+      <div class="linha"><button id="btnGerar" class="bt" disabled>Gerar atividade</button><button id="btnParar" class="bt sec" hidden>Parar</button><span id="gerarDica" class="peq">Carregue o modelo primeiro.</span></div>
+    </section>
+
+    <section class="folha" aria-label="Atividade gerada"><pre id="saida"></pre></section>
+    <div class="linha">
+      <button id="btnCopiar" class="bt sec" disabled>Copiar texto</button>
+      <button id="btnBaixar" class="bt sec" disabled>Baixar .txt</button>
+      <a class="peq" href="../">Voltar ao Currículo em Ação</a>
+    </div>
+    <p class="peq">A atividade é um rascunho. Revise conteúdo, gabarito e adequação ao ano antes de aplicar com os estudantes. Modelo aberto Qwen 2.5 (Apache 2.0) executado com WebLLM; nenhum texto digitado sai deste aparelho.</p>
+  </div>
+</main>
+
+<script src="https://emfalped-source.github.io/corretor/conta-emfal.js"></script>
+<script type="module">
+import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm";
+
+const API_URL = "https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
+const COMPS_PADRAO = ["Língua Portuguesa","Matemática","Ciências","Geografia","História","Arte","Educação Física","Língua Inglesa"];
+const TIPOS = {
+  mc:"questões de múltipla escolha com quatro alternativas (A, B, C e D), apenas uma correta",
+  interp:"um texto curto e original adequado ao ano, seguido de questões de interpretação sobre ele",
+  prob:"situações-problema contextualizadas no cotidiano de estudantes de Belo Horizonte",
+  aberta:"questões abertas (discursivas)",
+  sequencia:"uma sequência didática de uma aula de 50 minutos, com objetivo, desenvolvimento em etapas, atividade para os estudantes e forma de verificar a aprendizagem"
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function ls(k, v){ try{ if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+function lsJ(k, v){ if (v === undefined){ try{ return JSON.parse(ls(k) || "null"); }catch(e){ return null; } } ls(k, JSON.stringify(v)); }
+
+const EST = { token: ls("atividades_token") || ls("curriculo_token") || "", comps: lsJ("atv_comps") || COMPS_PADRAO, lista: [], online: navigator.onLine };
+let engine = null, parar = false;
+
+/* ---------- servidor (mesma planilha do Currículo) ---------- */
+function srv(fn, ...args){
+  if (fn !== "entrar") args.unshift(EST.token);
+  return fetch(API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({fn, args}), redirect:"follow"})
+    .then(r => { if (!r.ok) throw new Error("O servidor não respondeu (" + r.status + ")."); return r.json(); },
+          () => { throw new Error("OFFLINE"); })
+    .then(j => {
+      if (j.ok) return j.res;
+      const m = String(j.erro || "Erro");
+      if (m.indexOf("SESSAO:") === 0){ EST.token = ""; ls("atividades_token", ""); throw new Error("SESSAO"); }
+      throw new Error(m);
+    });
+}
+const temCache = () => Object.keys(localStorage).some(k => k.indexOf("atv_hab|") === 0);
+
+/* ---------- login ---------- */
+function telaLogin(msg){
+  $("app").hidden = true; $("login").hidden = false; $("bt-sair").hidden = true; $("user").textContent = "";
+  $("l-erro").textContent = msg || ""; $("l-bt").disabled = false; $("l-bt").textContent = "Entrar";
+  $("l-offline").hidden = !temCache();
+}
+$("login").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const u = $("l-usuario").value.trim(), s = $("l-senha").value;
+  if (!u || !s){ $("l-erro").textContent = "Informe usuário e senha."; return; }
+  $("l-bt").disabled = true; $("l-bt").textContent = "Entrando..."; $("l-erro").textContent = "";
+  srv("entrar", u, s).then(r => {
+    $("l-senha").value = "";
+    if (r.eu && r.eu.trocarSenha){
+      $("l-bt").disabled = false; $("l-bt").textContent = "Entrar";
+      if (window.ContaEMFAL){
+        ContaEMFAL.abrir({usuario:u, senha:s, obrigatoria:true, aoTerminar: res => {
+          if (!res.trocouSenha) return;
+          srv("entrar", u, res.senha).then(r2 => { EST.token = r2.token; ls("atividades_token", r2.token); iniciar(); })
+            .catch(() => { $("l-erro").textContent = "Senha criada. Entre com a nova senha."; });
+        }});
+      } else $("l-erro").textContent = "Crie sua senha definitiva no Currículo em Ação e volte aqui.";
+      return;
+    }
+    EST.token = r.token; ls("atividades_token", r.token); iniciar();
+  }).catch(e => {
+    $("l-erro").textContent = e.message === "OFFLINE" ? "Sem internet. Para entrar pela primeira vez é preciso conexão." : e.message;
+    $("l-bt").disabled = false; $("l-bt").textContent = "Entrar";
+  });
+});
+$("l-offline").addEventListener("click", () => abrirApp(null));
+$("bt-sair").addEventListener("click", () => {
+  if (EST.token) srv("sair").catch(()=>{});
+  EST.token = ""; ls("atividades_token", ""); telaLogin("");
+});
+
+function iniciar(){
+  if (!EST.token){ telaLogin(""); return; }
+  $("user").textContent = "Carregando...";
+  srv("inicio").then(d => {
+    EST.comps = d.componentes && d.componentes.length ? d.componentes : COMPS_PADRAO; lsJ("atv_comps", EST.comps);
+    lsJ("atv_eu", d.eu); abrirApp(d.eu);
+  }).catch(e => {
+    if (e.message === "SESSAO") return telaLogin("Sua sessão terminou. Entre de novo.");
+    if (e.message === "OFFLINE" && temCache()) return abrirApp(lsJ("atv_eu"), true);
+    telaLogin(e.message === "OFFLINE" ? "Sem internet. Para entrar pela primeira vez é preciso conexão." : e.message);
+  });
+}
+
+/* ---------- habilidades ---------- */
+const params = new URLSearchParams(location.search);
+let montado = false;
+function compsDoAno(a){ return EST.comps.filter(c => c !== "Língua Inglesa" || a >= 6); }
+function opcoes(sel, lista, valor){ sel.innerHTML = lista.map(o => { const v = typeof o === "object" ? o.v : o, t = typeof o === "object" ? o.t : o; return `<option value="${esc(v)}"${String(v) === String(valor) ? " selected" : ""}>${esc(t)}</option>`; }).join(""); }
+
+function abrirApp(eu, semNet){
+  $("login").hidden = true; $("app").hidden = false;
+  $("user").textContent = (eu ? eu.nome + " · " + eu.perfil : "Sem login") + (semNet ? " · sem internet" : "");
+  $("bt-sair").hidden = !EST.token;
+  $("bt-todas").hidden = !EST.token;
+  if (!montado){
+    montado = true;
+    const anoIni = Number(params.get("ano") || ls("emfal_ano") || 6);
+    opcoes($("h-ano"), [1,2,3,4,5,6,7,8,9].map(a => ({v:a, t:a + "º ano"})), anoIni);
+    opcoes($("h-comp"), compsDoAno(anoIni), params.get("comp") || ls("emfal_comp") || "Língua Portuguesa");
+    $("h-ano").onchange = () => { const a = Number($("h-ano").value); opcoes($("h-comp"), compsDoAno(a), $("h-comp").value); carregarHab(); };
+    $("h-comp").onchange = carregarHab;
+    $("h-busca").oninput = desenharLista;
+    $("h-sel").onchange = mostrarHab;
+  }
+  carregarHab(params.get("c"));
+}
+
+async function obterHab(comp, ano){
+  const k = "atv_hab|" + comp + "|" + ano;
+  if (EST.token){
+    try{ const l = await srv("habilidades", comp, ano); lsJ(k, l.map(h => ({c:h.c, d:h.d, u:h.u, o:h.o, crmg:h.crmg||"", anos:h.anos||""}))); return {lista: lsJ(k), fonte: "planilha"}; }
+    catch(e){ if (e.message === "SESSAO"){ telaLogin("Sua sessão terminou. Entre de novo."); throw e; } }
+  }
+  const l = lsJ(k);
+  return {lista: l || [], fonte: l ? "aparelho" : "nenhuma"};
+}
+async function carregarHab(codIni){
+  const comp = $("h-comp").value, ano = Number($("h-ano").value);
+  ls("emfal_ano", ano); ls("emfal_comp", comp);
+  $("h-estado").textContent = "Carregando habilidades...";
+  try{
+    const r = await obterHab(comp, ano);
+    EST.lista = r.lista;
+    $("h-estado").textContent = r.fonte === "planilha" ? `${r.lista.length} habilidades da planilha da escola, guardadas neste aparelho.`
+      : r.fonte === "aparelho" ? `${r.lista.length} habilidades guardadas neste aparelho (sem conexão com a planilha).`
+      : "Estas habilidades ainda não foram guardadas neste aparelho. Entre com internet para baixá-las, ou cole a habilidade.";
+    desenharLista(codIni);
+  }catch(e){}
+}
+function desenharLista(codIni){
+  const b = $("h-busca").value.trim().toLowerCase();
+  const f = EST.lista.filter(h => !b || (h.c + " " + h.d + " " + h.o + " " + h.u).toLowerCase().includes(b));
+  const atual = typeof codIni === "string" && codIni ? codIni : $("h-sel").value;
+  $("h-sel").innerHTML = f.map(h => `<option value="${esc(h.c)}">${esc(h.c)} · ${esc(h.d.length > 90 ? h.d.slice(0, 88) + "..." : h.d)}</option>`).join("")
+    + `<option value="__colar">Outra habilidade (colar o texto)</option>`;
+  if (atual && [...$("h-sel").options].some(o => o.value === atual)) $("h-sel").value = atual;
+  mostrarHab();
+}
+function habAtual(){
+  const v = $("h-sel").value, ano = $("h-ano").value + "º ano", comp = $("h-comp").value;
+  if (v === "__colar") return {c: $("h-cod").value.trim() || "(sem código)", d: $("h-txt").value.trim(), ano, comp};
+  const h = EST.lista.find(x => x.c === v) || {c:"", d:""};
+  return {...h, ano, comp};
+}
+function mostrarHab(){
+  const colar = $("h-sel").value === "__colar";
+  $("h-colar").hidden = !colar; $("h-info").hidden = colar;
+  if (!colar){
+    const h = habAtual();
+    $("h-info").innerHTML = h.c ? `<b class="cod">${esc(h.c)}</b>${esc(h.d)}<div class="meta">${h.o ? "<b>Objeto de conhecimento:</b> " + esc(h.o) : ""}${h.crmg ? "<br><b>CRMG:</b> " + esc(h.crmg) : ""}</div>` : "Nenhuma habilidade encontrada.";
+  }
+}
+
+$("bt-todas").addEventListener("click", async () => {
+  const bt = $("bt-todas"); bt.disabled = true;
+  const pares = []; for (let a = 1; a <= 9; a++) compsDoAno(a).forEach(c => pares.push([c, a]));
+  let ok = 0, falhas = 0;
+  for (const [c, a] of pares){
+    bt.textContent = `Guardando ${ok + falhas + 1} de ${pares.length}...`;
+    try{ const l = await srv("habilidades", c, a); lsJ("atv_hab|" + c + "|" + a, l.map(h => ({c:h.c, d:h.d, u:h.u, o:h.o, crmg:h.crmg||"", anos:h.anos||""}))); ok++; }
+    catch(e){ if (e.message === "SESSAO"){ telaLogin("Sua sessão terminou. Entre de novo."); return; } falhas++; }
+  }
+  bt.textContent = falhas ? `Guardadas ${ok} listas; ${falhas} falharam. Tocar para tentar de novo` : "Todas as habilidades guardadas neste aparelho";
+  bt.disabled = !falhas;
+});
+
+/* ---------- IA local ---------- */
+function setStatus(tipo, pill, txt){ $("pill").className = "selo" + (tipo ? " " + tipo : ""); $("pill").textContent = pill; $("statusTxt").textContent = txt || ""; }
+if (!navigator.gpu){
+  setStatus("nao", "Sem WebGPU", "Este navegador não roda a IA local. Use o Google Chrome atualizado em notebook ou computador.");
+  $("btnCarregar").disabled = true;
+}
+function traduz(t = ""){
+  return t.replace(/Fetching param cache/i, "Baixando o modelo").replace(/Loading model from cache/i, "Carregando do aparelho")
+    .replace(/Finish loading on WebGPU.*/i, "Finalizando").replace(/secs elapsed/i, "s").replace(/It can take a while.*$/i, "");
+}
+$("btnCarregar").addEventListener("click", async () => {
+  $("btnCarregar").disabled = true; $("btnGerar").disabled = true;
+  setStatus("meio", "Carregando", "Preparando o modelo...");
+  try{
+    if (engine) await engine.unload();
+    engine = await webllm.CreateMLCEngine($("modelo").value, { initProgressCallback: p => {
+      $("barra").style.width = Math.round((p.progress || 0) * 100) + "%"; $("statusTxt").textContent = traduz(p.text);
+    }});
+    $("barra").style.width = "100%";
+    setStatus("ok", "Pronto", "Modelo carregado neste aparelho.");
+    $("btnGerar").disabled = false; $("gerarDica").textContent = "";
+    ls("atv_modelo", $("modelo").value);
+  }catch(e){
+    console.error(e);
+    setStatus("nao", "Erro", "Não foi possível carregar. Na primeira vez é preciso internet. Se o aparelho tiver pouca memória, escolha o modelo Leve. Detalhe: " + (e.message || e));
+  }
+  $("btnCarregar").disabled = false; $("btnCarregar").textContent = "Trocar ou recarregar modelo";
+});
+if (ls("atv_modelo")) $("modelo").value = ls("atv_modelo");
+
+function montaPrompt(h){
+  const tipo = $("tipo").value, extra = $("extra").value.trim();
+  const sistema = 'Você é professor experiente de uma escola municipal pública de Belo Horizonte, Minas Gerais. Escreve atividades em português do Brasil correto, claras e adequadas à idade. Regras obrigatórias: use sempre a palavra "estudante" e nunca "aluno" ou "aluna"; não use emojis, travessões nem marcação com asteriscos ou cerquilhas; escreva como material produzido por professor; não invente dados sobre pessoas reais.';
+  let p = `Habilidade ${h.c} (${h.comp}, ${h.ano}): "${h.d}"`;
+  if (h.o) p += `\nObjeto de conhecimento: ${h.o}`;
+  if (h.crmg) p += `\nCurrículo Referência de Minas Gerais: ${h.crmg}`;
+  p += "\n\n";
+  if (tipo === "sequencia") p += `Elabore ${TIPOS[tipo]}, voltada para essa habilidade, em nível ${$("nivel").value} para o ${h.ano}.`;
+  else p += `Elabore ${$("qtd").value} ${TIPOS[tipo]}, todas voltadas para essa habilidade, em nível ${$("nivel").value} para o ${h.ano}. Numere as questões. Ao final, escreva a linha "GABARITO" e, abaixo dela, a resposta esperada de cada questão com uma breve justificativa.`;
+  p += `\nComece com um título curto para a atividade e a linha "Habilidade: ${h.c}".`;
+  if (extra) p += `\nOrientação do professor: ${extra}`;
+  return [{role:"system", content:sistema}, {role:"user", content:p}];
+}
+// Ajustes finais: modelos pequenos às vezes ignoram as regras de escrita da escola
+function limpa(t){
+  return t.replace(/\*\*|__|^#+\s*/gm, "").replace(/\s?[—–]\s?/g, ", ")
+    .replace(/\balun[oa]s\b/gi, m => m[0] === "A" ? "Estudantes" : "estudantes")
+    .replace(/\balun[oa]\b/gi, m => m[0] === "A" ? "Estudante" : "estudante");
+}
+$("btnGerar").addEventListener("click", async () => {
+  const h = habAtual(), saida = $("saida");
+  if (!h.d){ saida.textContent = "Escolha ou cole uma habilidade antes de gerar."; return; }
+  parar = false;
+  $("btnGerar").disabled = true; $("btnParar").hidden = false; $("btnCopiar").disabled = true; $("btnBaixar").disabled = true;
+  saida.textContent = ""; saida.classList.add("cursor");
+  setStatus("meio", "Gerando", "Escrevendo a atividade...");
+  let bruto = "";
+  try{
+    const stream = await engine.chat.completions.create({messages: montaPrompt(h), stream: true, temperature: 0.6, top_p: 0.9, max_tokens: 1800});
+    for await (const parte of stream){
+      if (parar){ engine.interruptGenerate(); break; }
+      bruto += parte.choices[0]?.delta?.content || "";
+      saida.textContent = limpa(bruto);
+    }
+    setStatus("ok", "Pronto", parar ? "Geração interrompida." : "Atividade gerada. Revise antes de usar.");
+  }catch(e){ console.error(e); setStatus("nao", "Erro", "Falha ao gerar: " + (e.message || e)); }
+  saida.classList.remove("cursor");
+  $("btnGerar").disabled = false; $("btnParar").hidden = true;
+  const tem = saida.textContent.trim().length > 0;
+  $("btnCopiar").disabled = !tem; $("btnBaixar").disabled = !tem;
+  ls("atv_ultima", saida.textContent);
+});
+$("btnParar").addEventListener("click", () => { parar = true; });
+$("btnCopiar").addEventListener("click", async () => {
+  try{ await navigator.clipboard.writeText($("saida").textContent); $("btnCopiar").textContent = "Copiado"; }
+  catch(e){ const r = document.createRange(); r.selectNodeContents($("saida")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("btnCopiar").textContent = "Texto selecionado"; }
+  setTimeout(() => $("btnCopiar").textContent = "Copiar texto", 2000);
+});
+$("btnBaixar").addEventListener("click", () => {
+  const blob = new Blob([$("saida").textContent], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `atividade_${habAtual().c || "emfal"}.txt`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+if (ls("atv_ultima")){ $("saida").textContent = ls("atv_ultima"); $("btnCopiar").disabled = false; $("btnBaixar").disabled = false; }
+
+/* ---------- início ---------- */
+if (EST.token) iniciar(); else telaLogin("");
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
