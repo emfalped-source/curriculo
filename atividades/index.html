@@ -70,17 +70,26 @@ button:focus-visible,select:focus,input:focus,textarea:focus{outline:2px solid v
   <div id="app" hidden style="display:grid;gap:14px">
     <section class="caixa" aria-labelledby="t1">
       <h2 id="t1">1. Inteligência artificial</h2>
-      <label for="modelo">Modelo
-        <select id="modelo">
-          <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Padrão: Qwen 2.5 1.5B (cerca de 1 GB, notebook comum)</option>
-          <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Melhor qualidade: Qwen 2.5 3B (cerca de 2 GB, notebook bom)</option>
-          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Leve: Qwen 2.5 0.5B (cerca de 400 MB, aparelhos fracos)</option>
-        </select>
-      </label>
+      <div class="grade">
+        <label for="modelo">Modelo
+          <select id="modelo">
+            <option value="padrao">Padrão: Qwen 2.5 1.5B (cerca de 1 GB)</option>
+            <option value="melhor">Melhor qualidade: Qwen 2.5 3B (cerca de 2 GB, mais lento)</option>
+            <option value="leve">Leve: Qwen 2.5 0.5B (cerca de 400 MB, rápido, qualidade menor)</option>
+          </select>
+        </label>
+        <label for="proc">Processamento
+          <select id="proc">
+            <option value="auto">Automático (placa gráfica, se houver)</option>
+            <option value="cpu">Só processador (mais compatível)</option>
+          </select>
+        </label>
+      </div>
       <div class="linha"><span id="pill" class="selo">Não carregado</span><span id="statusTxt" class="peq"></span></div>
       <div class="barra" aria-hidden="true"><span id="barra"></span></div>
       <div class="linha"><button id="btnCarregar" class="bt">Carregar modelo</button></div>
-      <p class="peq">Na primeira vez o modelo é baixado e guardado no navegador. Nas próximas vezes carrega do próprio aparelho, mesmo sem internet. Use o Google Chrome atualizado.</p>
+      <p id="diag" class="peq"></p>
+      <p class="peq">Na primeira vez o modelo é baixado e guardado no navegador. Nas próximas vezes carrega do próprio aparelho, mesmo sem internet. Funciona no Chrome do celular, do tablet e do computador. No celular, a primeira geração pode levar alguns minutos.</p>
     </section>
 
     <section class="caixa" aria-labelledby="t2">
@@ -124,13 +133,13 @@ button:focus-visible,select:focus,input:focus,textarea:focus{outline:2px solid v
       <button id="btnBaixar" class="bt sec" disabled>Baixar .txt</button>
       <a class="peq" href="../">Voltar ao Currículo em Ação</a>
     </div>
-    <p class="peq">A atividade é um rascunho. Revise conteúdo, gabarito e adequação ao ano antes de aplicar com os estudantes. Modelo aberto Qwen 2.5 (Apache 2.0) executado com WebLLM; nenhum texto digitado sai deste aparelho.</p>
+    <p class="peq">A atividade é um rascunho. Revise conteúdo, gabarito e adequação ao ano antes de aplicar com os estudantes. Modelo aberto Qwen 2.5 (Apache 2.0) executado com wllama (llama.cpp, licença MIT); nenhum texto digitado sai deste aparelho.</p>
   </div>
 </main>
 
 <script src="https://emfalped-source.github.io/corretor/conta-emfal.js"></script>
 <script type="module">
-import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm";
+import { Wllama } from "./wllama/index.js";
 
 const API_URL = "https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
 const COMPS_PADRAO = ["Língua Portuguesa","Matemática","Ciências","Geografia","História","Arte","Educação Física","Língua Inglesa"];
@@ -147,7 +156,6 @@ function ls(k, v){ try{ if (v === undefined) return localStorage.getItem(k); loc
 function lsJ(k, v){ if (v === undefined){ try{ return JSON.parse(ls(k) || "null"); }catch(e){ return null; } } ls(k, JSON.stringify(v)); }
 
 const EST = { token: ls("atividades_token") || ls("curriculo_token") || "", comps: lsJ("atv_comps") || COMPS_PADRAO, lista: [], online: navigator.onLine };
-let engine = null, parar = false;
 
 /* ---------- servidor (mesma planilha do Currículo) ---------- */
 function srv(fn, ...args){
@@ -296,35 +304,72 @@ $("bt-todas").addEventListener("click", async () => {
   bt.disabled = !falhas;
 });
 
-/* ---------- IA local ---------- */
+/* ---------- IA local (wllama: placa gráfica quando houver, senão processador) ---------- */
+const MODELOS = {
+  leve:   {repo:"bartowski/Qwen2.5-0.5B-Instruct-GGUF", arq:"Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"},
+  padrao: {repo:"bartowski/Qwen2.5-1.5B-Instruct-GGUF", arq:"Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"},
+  melhor: {repo:"bartowski/Qwen2.5-3B-Instruct-GGUF",   arq:"Qwen2.5-3B-Instruct-Q4_K_M.gguf"}
+};
+let ia = null, controle = null, usaGPU = false;
+const temGPU = "gpu" in navigator;
 function setStatus(tipo, pill, txt){ $("pill").className = "selo" + (tipo ? " " + tipo : ""); $("pill").textContent = pill; $("statusTxt").textContent = txt || ""; }
-if (!navigator.gpu){
-  setStatus("nao", "Sem WebGPU", "Este navegador não roda a IA local. Use o Google Chrome atualizado em notebook ou computador.");
-  $("btnCarregar").disabled = true;
+function diag(extra){
+  const nucleos = navigator.hardwareConcurrency || "?";
+  $("diag").textContent = "Diagnóstico: placa gráfica " + (temGPU ? "disponível" : "indisponível neste navegador") +
+    " · processador com " + nucleos + " núcleos · " + (self.crossOriginIsolated ? "vários núcleos liberados" : "um núcleo (recarregue a página para liberar mais)") + (extra ? " · " + extra : "");
 }
-function traduz(t = ""){
-  return t.replace(/Fetching param cache/i, "Baixando o modelo").replace(/Loading model from cache/i, "Carregando do aparelho")
-    .replace(/Finish loading on WebGPU.*/i, "Finalizando").replace(/secs elapsed/i, "s").replace(/It can take a while.*$/i, "");
+diag();
+function novaIA(){
+  return new Wllama({default: new URL("./wllama/wllama.wasm", location.href).href}, {allowOffline:true, parallelDownloads:3, suppressNativeLog:true});
+}
+async function tentarCarregar(m, cpu){
+  if (ia){ try{ await ia.exit(); }catch(e){} }
+  ia = novaIA();
+  const params = {n_ctx:3072, progressCallback: ({loaded, total}) => {
+    const pct = total ? Math.round(loaded / total * 100) : 0;
+    $("barra").style.width = pct + "%";
+    $("statusTxt").textContent = "Baixando o modelo: " + pct + "% (" + Math.round(loaded / 1048576) + " de " + Math.round((total || 0) / 1048576) + " MB)";
+  }};
+  if (cpu) params.n_gpu_layers = 0;
+  try{
+    await ia.loadModelFromUrl("https://huggingface.co/" + m.repo + "/resolve/main/" + m.arq, params);
+  }catch(e){
+    if (!navigator.onLine) throw e;
+    // se o nome do arquivo mudar no Hugging Face, procura pelo tipo de compressão
+    await ia.loadModelFromHF({repo:m.repo, quant:"Q4_K_M"}, params);
+  }
 }
 $("btnCarregar").addEventListener("click", async () => {
-  $("btnCarregar").disabled = true; $("btnGerar").disabled = true;
+  $("btnCarregar").disabled = true; $("btnGerar").disabled = true; $("barra").style.width = "0";
   setStatus("meio", "Carregando", "Preparando o modelo...");
+  const m = MODELOS[$("modelo").value];
+  const querGPU = $("proc").value === "auto" && temGPU;
   try{
-    if (engine) await engine.unload();
-    engine = await webllm.CreateMLCEngine($("modelo").value, { initProgressCallback: p => {
-      $("barra").style.width = Math.round((p.progress || 0) * 100) + "%"; $("statusTxt").textContent = traduz(p.text);
-    }});
+    try{
+      await tentarCarregar(m, !querGPU); usaGPU = querGPU;
+    }catch(e){
+      if (!querGPU) throw e;
+      console.warn("Placa gráfica falhou, usando processador", e);
+      setStatus("meio", "Carregando", "A placa gráfica não aceitou o modelo. Tentando pelo processador...");
+      await tentarCarregar(m, true); usaGPU = false;
+    }
     $("barra").style.width = "100%";
-    setStatus("ok", "Pronto", "Modelo carregado neste aparelho.");
+    const como = usaGPU ? "placa gráfica" : "processador (" + ia.getNumThreads() + (ia.getNumThreads() > 1 ? " núcleos)" : " núcleo)");
+    setStatus("ok", "Pronto", "Modelo carregado neste aparelho, usando " + como + ".");
+    diag("em uso: " + como);
     $("btnGerar").disabled = false; $("gerarDica").textContent = "";
-    ls("atv_modelo", $("modelo").value);
+    ls("atv_modelo", $("modelo").value); ls("atv_proc", $("proc").value);
   }catch(e){
     console.error(e);
-    setStatus("nao", "Erro", "Não foi possível carregar. Na primeira vez é preciso internet. Se o aparelho tiver pouca memória, escolha o modelo Leve. Detalhe: " + (e.message || e));
+    const msg = String(e && e.message || e);
+    setStatus("nao", "Erro", (!navigator.onLine ? "Sem internet e o modelo ainda não foi baixado neste aparelho. " :
+      /memory|memória|allocate|OOM/i.test(msg) ? "Falta memória para este modelo. Escolha o modelo Leve. " :
+      "Não foi possível carregar. Tente o modelo Leve ou a opção Só processador. ") + "Detalhe: " + msg);
   }
   $("btnCarregar").disabled = false; $("btnCarregar").textContent = "Trocar ou recarregar modelo";
 });
-if (ls("atv_modelo")) $("modelo").value = ls("atv_modelo");
+if (ls("atv_modelo") && MODELOS[ls("atv_modelo")]) $("modelo").value = ls("atv_modelo");
+if (ls("atv_proc")) $("proc").value = ls("atv_proc");
 
 function montaPrompt(h){
   const tipo = $("tipo").value, extra = $("extra").value.trim();
@@ -348,27 +393,30 @@ function limpa(t){
 $("btnGerar").addEventListener("click", async () => {
   const h = habAtual(), saida = $("saida");
   if (!h.d){ saida.textContent = "Escolha ou cole uma habilidade antes de gerar."; return; }
-  parar = false;
   $("btnGerar").disabled = true; $("btnParar").hidden = false; $("btnCopiar").disabled = true; $("btnBaixar").disabled = true;
   saida.textContent = ""; saida.classList.add("cursor");
   setStatus("meio", "Gerando", "Escrevendo a atividade...");
-  let bruto = "";
+  let bruto = "", n = 0; const t0 = performance.now();
+  controle = new AbortController();
   try{
-    const stream = await engine.chat.completions.create({messages: montaPrompt(h), stream: true, temperature: 0.6, top_p: 0.9, max_tokens: 1800});
+    const stream = await ia.createChatCompletion({messages: montaPrompt(h), stream: true, temperature: 0.6, top_p: 0.9, max_tokens: 1500, abortSignal: controle.signal});
     for await (const parte of stream){
-      if (parar){ engine.interruptGenerate(); break; }
-      bruto += parte.choices[0]?.delta?.content || "";
+      bruto += parte.choices?.[0]?.delta?.content || ""; n++;
       saida.textContent = limpa(bruto);
+      if (n % 10 === 0) $("statusTxt").textContent = "Escrevendo a atividade... (" + (n / ((performance.now() - t0) / 1000)).toFixed(1) + " palavras por segundo, aproximadamente)";
     }
-    setStatus("ok", "Pronto", parar ? "Geração interrompida." : "Atividade gerada. Revise antes de usar.");
-  }catch(e){ console.error(e); setStatus("nao", "Erro", "Falha ao gerar: " + (e.message || e)); }
+    setStatus("ok", "Pronto", "Atividade gerada. Revise antes de usar.");
+  }catch(e){
+    if (controle.signal.aborted) setStatus("ok", "Pronto", "Geração interrompida.");
+    else { console.error(e); setStatus("nao", "Erro", "Falha ao gerar. Se estiver usando a placa gráfica, troque para Só processador e carregue de novo. Detalhe: " + (e.message || e)); }
+  }
   saida.classList.remove("cursor");
   $("btnGerar").disabled = false; $("btnParar").hidden = true;
   const tem = saida.textContent.trim().length > 0;
   $("btnCopiar").disabled = !tem; $("btnBaixar").disabled = !tem;
   ls("atv_ultima", saida.textContent);
 });
-$("btnParar").addEventListener("click", () => { parar = true; });
+$("btnParar").addEventListener("click", () => { if (controle) controle.abort(); });
 $("btnCopiar").addEventListener("click", async () => {
   try{ await navigator.clipboard.writeText($("saida").textContent); $("btnCopiar").textContent = "Copiado"; }
   catch(e){ const r = document.createRange(); r.selectNodeContents($("saida")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("btnCopiar").textContent = "Texto selecionado"; }
@@ -383,7 +431,13 @@ if (ls("atv_ultima")){ $("saida").textContent = ls("atv_ultima"); $("btnCopiar")
 
 /* ---------- início ---------- */
 if (EST.token) iniciar(); else telaLogin("");
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(() => navigator.serviceWorker.ready).then(() => {
+    // na primeira visita, recarrega uma vez para a página passar pelo service worker e liberar vários núcleos
+    let ja = "1"; try{ ja = sessionStorage.getItem("atv_recarregou"); sessionStorage.setItem("atv_recarregou", "1"); }catch(e){}
+    if (!self.crossOriginIsolated && !ja) location.reload();
+  }).catch(() => {});
+}
 </script>
 </body>
 </html>

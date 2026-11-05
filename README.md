@@ -8,4 +8,4 @@ A tela fica aqui (GitHub Pages). Os dados (habilidades, atividades, questões, t
 
 ## Atividades com IA (pasta `atividades/`)
 
-Página em que o professor escolhe uma habilidade (as mesmas da planilha do Currículo, com o mesmo login) e uma inteligência artificial aberta (Qwen 2.5, via WebLLM) gera atividades com gabarito no próprio aparelho. Depois do primeiro acesso com internet, as habilidades e o modelo ficam guardados e a página funciona offline. Requer Google Chrome com WebGPU (notebook ou computador).
+Página em que o professor escolhe uma habilidade (as mesmas da planilha do Currículo, com o mesmo login) e uma inteligência artificial aberta (Qwen 2.5, via wllama/llama.cpp, guardado em `atividades/wllama/`) gera atividades com gabarito no próprio aparelho. Depois do primeiro acesso com internet, as habilidades e o modelo ficam guardados e a página funciona offline. Usa a placa gráfica quando o navegador permite e, se não, o processador; funciona no Chrome do celular e do computador.
