@@ -211,6 +211,8 @@ var COMP_SIG={"Língua Portuguesa":"LP","Matemática":"MA","Ciências":"CI","His
 var EST={pessoa:null,turmas:[],comps:[],cacheHab:{},eq:{},prova:[],registros:{},token:"",montado:false};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+// **negrito** e __sublinhado__ nas questões importadas (ex.: CEFET-MG)
+function fmt(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/__(.+?)__/g,"<u>$1</u>")}
 var IMGS={},IMGOK={};
 function imgSrc(id){if(!IMGS[id])IMGS[id]=srv("imagemPET",id).then(function(r){var u="data:"+r.tipo+";base64,"+r.b64;IMGOK[id]=u;return u},function(e){delete IMGS[id];throw e});return IMGS[id]}
 function idsImg(q){return String(q&&q.img||"").split(",").map(function(x){return x.trim()}).filter(Boolean)}
@@ -349,7 +351,7 @@ function corpo(h){
   s+='<div class="peq">Mais ideias na web: <a href="https://novaescola.org.br/planos-de-aula/habilidades/'+h.c.toLowerCase()+'" target="_blank">planos de aula da Nova Escola para '+h.c+'</a> · <a href="https://www.google.com/search?q='+encodeURIComponent(h.c+" atividade")+'" target="_blank">buscar atividades</a> · <a href="atividades/?c='+encodeURIComponent(h.c)+'&comp='+encodeURIComponent($("h-comp").value)+'&ano='+encodeURIComponent($("h-ano").value)+'">gerar atividade com IA neste aparelho</a></div>';
   s+='<h3>Questões com gabarito</h3>';
   s+=h.qst.map(function(q,i){var id=h.c+"#"+i;var dentro=EST.prova.some(function(p){return p.id===id});
-    return '<div class="q">'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+blocoImg(q)+'<div>'+esc(q.en)+'</div><ol>'+alts(q).map(function(a){return "<li>"+esc(a)+"</li>"}).join("")+'</ol>'+(q.fonte?'<div class="qfonte">Fonte: '+esc(q.fonte)+'</div>':"")+'<div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
+    return '<div class="q">'+(q.tb?'<div class="tb">'+fmt(q.tb)+'</div>':"")+blocoImg(q)+'<div>'+fmt(q.en)+'</div><ol>'+alts(q).map(function(a){return "<li>"+fmt(a)+"</li>"}).join("")+'</ol>'+(q.fonte?'<div class="qfonte">Fonte: '+esc(q.fonte)+'</div>':"")+'<div class="gab">Gabarito: '+esc(q.g)+'. '+esc(q.j)+'</div><div class="linha"><button class="bt sec" data-gab>Ver gabarito</button><button class="bt'+(dentro?"":" sec")+'" data-inc="'+id+'">'+(dentro?"Incluída na prova":"Incluir na prova")+'</button></div></div>'}).join("")||'<p class="peq">Sem questões cadastradas.</p>';
   s+=blocoQstEquipe(h);
   return s;
 }
@@ -483,7 +485,7 @@ function htmlProva(){
   var s='<div class="doc"><div class="cab">PREFEITURA MUNICIPAL DE BELO HORIZONTE<br>SECRETARIA MUNICIPAL DE EDUCAÇÃO (SMED-BH)<br>GERÊNCIA REGIONAL DE EDUCAÇÃO DA PAMPULHA (GERED-PAMPULHA)<br>ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div>';
   s+='<div class="tit">'+esc(tipo.toUpperCase())+(comp?" DE "+esc(comp.toUpperCase()):"")+'</div>';
   s+='<table class="id"><tr><td colspan="2">Estudante:</td></tr><tr><td>Turma: '+esc(tur)+'</td><td>Data: ____/____/______</td></tr><tr><td>Professor(a): '+esc(EST.pessoa.nome||"")+'</td><td>Valor: '+esc(val)+'   Nota: ________</td></tr></table>';
-  s+=EST.prova.map(function(p,k){var q=p.q;return '<div class="qq"><p><b>Questão '+(k+1)+'</b> <span style="font-size:9pt;color:#555">('+p.c+')</span></p>'+(q.tb?'<div class="tb">'+esc(q.tb)+'</div>':"")+idsImg(q).map(function(id){return IMGOK[id]?'<img src="'+IMGOK[id]+'" alt="Imagem da questão">':'<p><i>[imagem indisponível]</i></p>'}).join("")+'<p>'+esc(q.en)+'</p>'+alts(q).map(function(a,i){return '<p>( '+"ABCDE"[i]+' ) '+esc(a)+'</p>'}).join("")+'</div>'}).join("");
+  s+=EST.prova.map(function(p,k){var q=p.q;return '<div class="qq"><p><b>Questão '+(k+1)+'</b> <span style="font-size:9pt;color:#555">('+p.c+')</span></p>'+(q.tb?'<div class="tb">'+fmt(q.tb)+'</div>':"")+idsImg(q).map(function(id){return IMGOK[id]?'<img src="'+IMGOK[id]+'" alt="Imagem da questão">':'<p><i>[imagem indisponível]</i></p>'}).join("")+'<p>'+fmt(q.en)+'</p>'+alts(q).map(function(a,i){return '<p>( '+"ABCDE"[i]+' ) '+esc(a)+'</p>'}).join("")+'</div>'}).join("");
   s+='<div class="quebra"></div><div class="cab">ESCOLA MUNICIPAL FRANCISCA ALVES (EMFAL)</div><div class="tit">GABARITO DO PROFESSOR</div>';
   s+='<table class="gb"><tr><th>Questão</th><th>Resposta</th><th>Habilidade</th></tr>'+EST.prova.map(function(p,k){return '<tr><td>'+(k+1)+'</td><td>'+esc(p.q.g)+'</td><td>'+p.c+'</td></tr>'}).join("")+'</table>';
   s+=EST.prova.map(function(p,k){return '<p style="font-size:11pt"><b>'+(k+1)+'.</b> '+esc(p.q.j)+'</p>'}).join("");
