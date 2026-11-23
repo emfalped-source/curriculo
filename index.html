@@ -221,12 +221,12 @@ function carregarImgs(raiz){raiz.querySelectorAll("img[data-img]:not([src])").fo
 function alts(q){var a=(q.alt||[]).map(function(x){return String(x==null?"":x)});while(a.length&&!a[a.length-1].trim())a.pop();return a}
 function aviso(t){var a=$("aviso");a.textContent=t;a.style.display="block";clearTimeout(aviso.t);aviso.t=setTimeout(function(){a.style.display="none"},3000)}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var API_URL="https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
+var API_URL="https://script.google.com/macros/s/AKfycbzCbPfrmF1AZhXP2xh0Se-mMQUJlWqbTkCZ8doxeNOsn5XHBE-2YMW-M6T4_R3BtBrF/exec";
 var SEM_TOKEN=["entrar"];
 function srv(fn){
   var args=[].slice.call(arguments,1);
   if(SEM_TOKEN.indexOf(fn)<0)args.unshift(EST.token);
-  return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:fn,args:args}),redirect:"follow"})
+  return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn:"cur."+fn,args:args}),redirect:"follow"})
     .then(function(r){if(!r.ok)throw new Error("O servidor não respondeu ("+r.status+"). Tente de novo.");return r.json()},function(){throw new Error("Sem conexão com o servidor. Verifique a internet e tente de novo.")})
     .then(function(j){
       if(j.ok)return j.res;

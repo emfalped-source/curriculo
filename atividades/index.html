@@ -141,7 +141,7 @@ button:focus-visible,select:focus,input:focus,textarea:focus{outline:2px solid v
 <script type="module">
 import { Wllama } from "./wllama/index.js";
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzJqB22B9ioE8b23FEcwhbbQVYcDzB-zPf8-rR-lcElNmDFOgpTM0WEsaryjP3FFSZYkQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzCbPfrmF1AZhXP2xh0Se-mMQUJlWqbTkCZ8doxeNOsn5XHBE-2YMW-M6T4_R3BtBrF/exec";
 const COMPS_PADRAO = ["Língua Portuguesa","Matemática","Ciências","Geografia","História","Arte","Educação Física","Língua Inglesa"];
 const TIPOS = {
   mc:"questões de múltipla escolha com quatro alternativas (A, B, C e D), apenas uma correta",
@@ -160,7 +160,7 @@ const EST = { token: ls("atividades_token") || ls("curriculo_token") || "", comp
 /* ---------- servidor (mesma planilha do Currículo) ---------- */
 function srv(fn, ...args){
   if (fn !== "entrar") args.unshift(EST.token);
-  return fetch(API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({fn, args}), redirect:"follow"})
+  return fetch(API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({fn: "cur." + fn, args}), redirect:"follow"})
     .then(r => { if (!r.ok) throw new Error("O servidor não respondeu (" + r.status + ")."); return r.json(); },
           () => { throw new Error("OFFLINE"); })
     .then(j => {
