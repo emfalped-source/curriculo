@@ -123,9 +123,10 @@ header .sair{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;fo
 <!-- tema-emfal: mesmas cores do Super App EMFAL (azul-petróleo, terracota e areia), sempre claro -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://emfalped-source.github.io/emfal/tema.css">
 <style id="tema-emfal">
-:root,:root[data-theme],:root:not([data-theme]){color-scheme:light!important;--azul:#1F5C6B!important;--azul2:#E3EFF1!important;--borda:#D5DBE3!important;--texto:#16202E!important;--sub:#4A5565!important;--fundo:#F5F1E8!important;}
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important}.doc,.doc *{font-family:Calibri,Carlito,Arial,sans-serif}
+:root,:root[data-theme],:root:not([data-theme]){color-scheme:light!important;--azul:var(--emfal-primaria,#1F5C6B)!important;--azul2:var(--emfal-primaria-cl,#E3EFF1)!important;--borda:var(--emfal-borda,#D5DBE3)!important;--texto:var(--emfal-tinta,#16202E)!important;--sub:var(--emfal-suave,#4A5565)!important;--fundo:var(--emfal-fundo,#F5F1E8)!important;}
+body{font-family:var(--emfal-fonte,Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif)!important}.doc,.doc *{font-family:Calibri,Carlito,Arial,sans-serif}
 </style>
 </head>
 <body>
